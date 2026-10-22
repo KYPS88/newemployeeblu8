@@ -307,9 +307,12 @@ function lifePath(iso) {
 }
 
 function results(a) {
-  const ans = a.ans || {};
-  const disc = countLetters(ans.disc, DISC_K), bosi = countLetters(ans.bosi, BOSI_K);
-  const raw = ennRaw(ans.enn), order = ennTop(raw);
+  const ans = a.ans || {}, rs = a.res || {};
+  // ใบสมัครเก็บเฉพาะผลลัพธ์ (res) ไม่เก็บคำตอบรายข้อ; ใช้ ans เฉพาะตอนคำนวณครั้งแรก
+  const fromPct = (o, keys) => { const v = keys.map(k => +o[k] || 0), t = sum(v) || 1; return v.map(x => x / t); };
+  const disc = rs.disc ? fromPct(rs.disc, DISC_K) : countLetters(ans.disc, DISC_K);
+  const bosi = rs.bosi ? fromPct(rs.bosi, BOSI_K) : countLetters(ans.bosi, BOSI_K);
+  const raw = rs.enn ? Array.from({ length: 9 }, (_, t) => +rs.enn[t + 1] || 0) : ennRaw(ans.enn), order = ennTop(raw);
   const fit = POSITIONS.map(p => {
     const d = pct(overlap(disc, p.disc)), b = pct(overlap(bosi, p.bosi));
     const e = Math.round(p.enn[order[0]] * .65 + p.enn[order[1]] * .35);
@@ -433,6 +436,19 @@ document.getElementById("steps").innerHTML = STEP_NAMES.map((n, i) => `<span rol
 const HR = [["hr.status","การพิจารณาว่าจ้าง",{opts:["รอพิจารณา","นัดสัมภาษณ์","อนุมัติ","ไม่อนุมัติ"]}], ["hr.pos","ตำแหน่ง (Position)"], ["hr.dept","แผนก (Department)"],
   ["hr.salary","เงินเดือน (บาท/เดือน)",{type:"number"}], ["hr.allow","ค่าใช้จ่ายพิเศษ (Allowances)"], ["hr.start","วันที่เริ่มงาน",{type:"date"}], ["hr.note","บันทึกการสัมภาษณ์"]];
 HR.forEach(([k, l]) => L[k] = "HR: " + l);
+// หัวคอลัมน์ใน Google Sheets / CSV
+Object.assign(L, { id:"รหัสผู้สมัคร", createdAt:"วันเวลาที่สมัคร", signDate:"วันที่ลงนามใบสมัคร", pos1:"ตำแหน่งที่สมัคร (1)", pos2:"ตำแหน่งที่สมัคร (2)", signImg:"ลายเซ็น (ข้อมูลภาพ)",
+  "res.fit1":"% เหมาะกับตำแหน่งที่สมัคร (1)", "res.fit2":"% เหมาะกับตำแหน่งที่สมัคร (2)", "res.best":"ตำแหน่งที่เหมาะที่สุด",
+  "res.ceo":"เข้ากับ CEO (คะแนน)", "res.ceoLevel":"เข้ากับ CEO (ระดับ)", "res.lp":"เลขเส้นทางชีวิต (พีทาโกรัส)",
+  "res.discTop":"DISC สไตล์หลัก", "res.bosiTop":"BOSI สไตล์หลัก", "res.ennTop":"Enneagram ไทป์หลัก", "res.ennSecond":"Enneagram ไทป์รอง" });
+POSITIONS.forEach(p => L["res.fit." + p.id] = "% เหมาะสม: " + p.name);
+DISC_K.forEach(k => L["res.disc." + k] = `DISC ${k} (%)`);
+BOSI_K.forEach(k => L["res.bosi." + k] = `BOSI ${BOSI_INFO[k][0].split(" ")[0]} (%)`);
+for (let t = 1; t <= 9; t++) L["res.enn." + t] = `Enneagram ไทป์ ${t} (คะแนน 4–20)`;
+const GROUP = { sp:"คู่สมรส", fa:"บิดา", mo:"มารดา", ct:"ผู้ติดต่อฉุกเฉิน" };
+for (const k in L) { const g = GROUP[k.split(".")[0]]; if (g && k.includes(".") && !L[k].includes(g)) L[k] = `${g}: ${L[k]}`; }
+const sheetLabels = keys => Object.fromEntries(keys.map(k => [k, L[k] || k]));
+const fmtTime = s => { const d = new Date(String(s || "").replace(" ", "T")); return isNaN(d) ? String(s || "") : d; };
 
 /* ---------- จัดเก็บ ---------- */
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
@@ -445,9 +461,10 @@ async function urlCall(payload) {
 const remote = (fn, payload) => MODE === "gas" ? gasCall(fn, payload) : urlCall({ fn, payload });
 // ทุกคำสั่งรับ/ส่งข้อมูลผ่านตรงนี้ ไม่ว่าจะเก็บที่ Google Sheets หรือในเครื่อง
 const api = {
-  submit: a => MODE === "local" ? (save([...load(), a]), "ok") : remote("apiSubmit", a),
-  list: key => MODE === "local" ? load() : remote("apiList", { key }),
-  saveHr: (key, id, hr) => { if (MODE !== "local") return remote("apiSaveHr", { key, id, hr }); const d = load(), x = d.find(y => y.id === id); if (x) x.hr = hr; save(d); },
+  submit: a => { if (MODE === "local") { save([...load(), a]); return "ok"; } const row = flat(a); return remote("apiSubmit", { row, labels: sheetLabels(Object.keys(row)) }); },
+  list: async key => { if (MODE === "local") return load();
+    return ((await remote("apiList", { key })) || []).map(r => { const a = {}; for (const k in r) setPath(a, k, r[k]); return a; }); },
+  saveHr: (key, id, hr) => { if (MODE !== "local") return remote("apiSaveHr", { key, id, hr, labels: sheetLabels(Object.keys(hr).map(k => "hr." + k)) }); const d = load(), x = d.find(y => y.id === id); if (x) x.hr = hr; save(d); },
   remove: (key, id) => MODE === "local" ? save(load().filter(x => x.id !== id)) : remote("apiRemove", { key, id })
 };
 const errMsg = e => (e && e.message) || String(e);
@@ -528,19 +545,30 @@ form.addEventListener("click", async e => {
   const btn = e.target.closest("[data-submit]"); if (!btn) return;
   const miss = steps.map((_, i) => i).filter(i => !stepDone(i));
   if (miss.length) { alert("ยังกรอกไม่ครบ: " + miss.map(i => STEP_NAMES[i]).join(", ")); const i = miss.includes(cur) ? cur : miss[0]; if (i !== cur) show(i); setTimeout(() => validStep(i), 400); return; }
-  const a = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), createdAt: new Date().toISOString(), signImg: sigCanvas.toDataURL("image/png"), ans: {} };
+  const now = new Date(), p2 = n => String(n).padStart(2, "0");
+  const a = { id: now.getTime().toString(36) + Math.random().toString(36).slice(2, 6),
+    createdAt: `${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())} ${p2(now.getHours())}:${p2(now.getMinutes())}`, ans: {} };
   const fd = new FormData(form);
   a.ans.disc = DISC_Q.map((_, i) => fd.get(`t_disc_${i}`)).join("");
   a.ans.bosi = BOSI_Q.map((_, i) => fd.get(`t_bosi_${i}`)).join("");
   a.ans.enn = ENN_Q.map((_, i) => fd.get(`t_enn_${i}`)).join("");
   for (const [k, v] of fd) if (!k.startsWith("t_")) setPath(a, k, String(v).trim());
   ["pos1", "pos2"].forEach(k => { if (a[k] === OTHER) a[k] = a[k + "Other"]; delete a[k + "Other"]; });
-  // สรุปผลไว้ให้ดูใน Google Sheets ได้ทันที
-  const r = results(a), f1 = r.fit[posIdx(a.pos1)], best = r.fit.slice().sort((x, y) => y.total - x.total)[0];
-  a.summary = { fit1: f1 ? f1.total : "", best: `${best.p.name} (${best.total}%)`, disc: DISC_INFO[r.discTop][0], bosi: BOSI_INFO[r.bosiTop][0],
-    enn: ENN_INFO[r.order[0]][0], lp: r.lp ? r.lp.n : "", ceo: r.comp ? `${r.comp.score} (${r.comp.level})` : "" };
+  // เก็บเฉพาะผลลัพธ์ของแบบทดสอบ ไม่เก็บคำตอบรายข้อ
+  const r = results(a), fitOf = name => { const f = r.fit[posIdx(name)]; return f ? f.total : ""; };
+  const best = r.fit.slice().sort((x, y) => y.total - x.total)[0];
+  const res = { fit1: fitOf(a.pos1), fit2: fitOf(a.pos2), best: `${best.p.name} (${best.total}%)`,
+    ceo: r.comp ? r.comp.score : "", ceoLevel: r.comp ? r.comp.level : "", lp: r.lp ? r.lp.n : "",
+    discTop: DISC_INFO[r.discTop][0], bosiTop: BOSI_INFO[r.bosiTop][0], ennTop: ENN_INFO[r.order[0]][0], ennSecond: ENN_INFO[r.order[1]][0],
+    fit: Object.fromEntries(r.fit.map(f => [f.p.id, f.total])),
+    disc: Object.fromEntries(DISC_K.map((k, i) => [k, pct(r.disc[i])])),
+    bosi: Object.fromEntries(BOSI_K.map((k, i) => [k, pct(r.bosi[i])])),
+    enn: Object.fromEntries(r.raw.map((v, t) => [t + 1, v])) };
+  const { id, createdAt, ans, ...fields } = a;
+  const rec = { id, createdAt, res, ...fields, hr: Object.fromEntries(HR.map(([k]) => [k.slice(3), k === "hr.status" ? "รอพิจารณา" : ""])),
+    signImg: sigCanvas.toDataURL("image/png") };
   btn.disabled = true; btn.textContent = "กำลังส่ง…";
-  try { await api.submit(a); }
+  try { await api.submit(rec); }
   catch (e) { alert("ส่งไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วกดส่งอีกครั้ง (ข้อมูลที่กรอกยังอยู่ครบ)\n\n" + errMsg(e)); return; }
   finally { btn.disabled = false; btn.textContent = "ส่งใบสมัคร"; }
   try { localStorage.removeItem(DRAFT); } catch (e) {}
@@ -583,12 +611,12 @@ function render() {
   if (!data.length) { list.innerHTML = '<div class="note">ยังไม่มีผู้สมัคร</div>'; return; }
   list.innerHTML = data.slice().reverse().map(a => {
     const f = flat(a), r = results(a), fit1 = r.fit[posIdx(a.pos1)];
-    const rows = Object.keys(f).filter(k => !/^(id|createdAt|hr\.|signImg|ans\.)/.test(k) && f[k] !== "").map(k => `<div class="kv"><small>${esc(L[k] || k)}</small>${esc(f[k])}</div>`).join("");
+    const rows = Object.keys(f).filter(k => !/^(id|createdAt|hr\.|signImg|ans\.|res\.|summary\.)/.test(k) && f[k] !== "").map(k => `<div class="kv"><small>${esc(L[k] || k)}</small>${esc(f[k])}</div>`).join("");
     const hr = HR.map(([k, l, o = {}]) => { const v = f[k] ?? "";
       const c = o.opts ? `<select data-hr="${k}">${["", ...o.opts].map(x => `<option${x === v ? " selected" : ""}>${x}</option>`).join("")}</select>` : `<input data-hr="${k}" type="${o.type || "text"}" value="${esc(v)}">`;
       return `<label>${l}${c}</label>`; }).join("");
     return `<div class="item" data-id="${esc(a.id)}"><div class="head"><div><strong>${esc(a.nameTh)}</strong> ${a.nick ? `(${esc(a.nick)})` : ""} ${a.hr?.status ? `<span class="badge">${esc(a.hr.status)}</span>` : ""}
-      <small>${esc(a.pos1)}${fit1 ? ` · เหมาะสม ${fit1.total}%` : ""}${r.comp ? ` · เข้ากับ CEO ${r.comp.score}` : ""}</small><small>${esc(a.phone)} | ${esc(a.email)} | สมัครเมื่อ ${new Date(a.createdAt).toLocaleString("th-TH")}</small></div>
+      <small>${esc(a.pos1)}${fit1 ? ` · เหมาะสม ${fit1.total}%` : ""}${r.comp ? ` · เข้ากับ CEO ${r.comp.score}` : ""}</small><small>${esc(a.phone)} | ${esc(a.email)} | สมัครเมื่อ ${esc(fmtTime(a.createdAt).toLocaleString?.("th-TH") ?? a.createdAt)}</small></div>
       <div><button class="ghost sm" data-act="toggle">รายละเอียด</button><button class="ghost sm" data-act="printApp">พิมพ์ใบสมัคร</button><button class="ghost sm" data-act="printRep">พิมพ์ผลประเมิน</button><button class="ghost sm" data-act="printAll">พิมพ์ทั้งหมด</button><button class="del sm" data-act="del">ลบ</button></div></div>
       <div class="detail${a.id === openId ? " open" : ""}">${resultHTML(a)}<div class="sub"><b>ข้อมูลผู้สมัคร</b>${rows}${/^data:image\/png;base64,/.test(a.signImg || "") ? `<div class="kv"><small>ลายเซ็น</small><img src="${a.signImg}" alt="ลายเซ็น" style="max-width:240px;background:#fff;border-radius:6px"></div>` : ""}</div><div class="sub"><b>สำหรับเจ้าหน้าที่ (HR)</b><div class="grid">${hr}</div><button class="sm" data-act="hr">บันทึกส่วน HR</button></div></div></div>`;
   }).join("");
@@ -624,7 +652,7 @@ function reportHTML(a) {
   const bar = (label, v) => `<div class="bar"><span>${label}</span><i><u style="width:${Math.round(v)}%"></u></i><span>${Math.round(v)}%</span></div>`;
   const ennPct = r.raw.map(v => (v - 4) / 16 * 100);
   let h = `<div class="rp"><div class="rh"><div><h3>รายงานผลแบบทดสอบบุคลิกภาพและความเหมาะสมกับตำแหน่ง</h3>${esc(CONFIG.company)} · เอกสารลับสำหรับฝ่ายบุคคล</div>
-    <div style="text-align:right">วันที่สมัคร ${new Date(a.createdAt).toLocaleDateString("th-TH")}</div></div>
+    <div style="text-align:right">วันที่สมัคร ${esc(fmtTime(a.createdAt).toLocaleDateString?.("th-TH") ?? a.createdAt)}</div></div>
     <table class="ft" style="margin:0 0 6px"><tr><td style="width:50%"><b>ผู้สมัคร:</b> ${esc(a.nameTh)} ${a.nick ? `(${esc(a.nick)})` : ""}<br><b>วันเกิด:</b> ${thDate(a.dob) || "-"} · อายุ ${esc(a.age) || "-"} ปี</td>
     <td style="text-align:left"><b>ตำแหน่งที่สมัคร:</b> 1) ${esc(a.pos1) || "-"}${a.pos2 ? `<br>2) ${esc(a.pos2)}` : ""}<br><b>โทร:</b> ${esc(a.phone)}</td></tr></table>
     <div class="cols">
@@ -706,10 +734,7 @@ function appHTML(a) {
 
 /* ---------- CSV / นำเข้า ---------- */
 document.getElementById("exportBtn").addEventListener("click", async () => {
-  const rows = DATA.map(a => { const r = results(a), o = flat(a); delete o.signImg;
-    DISC_K.forEach((k, i) => o["DISC " + k + " %"] = pct(r.disc[i])); BOSI_K.forEach((k, i) => o["BOSI " + k + " %"] = pct(r.bosi[i]));
-    o["Enneagram ไทป์หลัก"] = r.order[0] + 1; r.fit.forEach(f => o["เหมาะสม: " + f.p.name + " %"] = f.total);
-    o["เลขเส้นทางชีวิต"] = r.lp?.n ?? ""; o["เข้ากับ CEO (คะแนน)"] = r.comp?.score ?? ""; return o; });
+  const rows = DATA.map(a => { const o = flat(a); delete o.signImg; Object.keys(o).forEach(k => { if (k.startsWith("ans.")) delete o[k]; }); return o; });
   const cols = []; rows.forEach(r => Object.keys(r).forEach(k => { if (!cols.includes(k)) cols.push(k); }));
   const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
   const csv = [cols.map(k => q(L[k] || k)).join(",")].concat(rows.map(r => cols.map(k => q(r[k])).join(","))).join("\n");
