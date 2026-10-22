@@ -13,6 +13,7 @@
     --bg:#14171c; --card:#1e232b; --text:#e8ebf0; --muted:#9aa3b2; --line:#343b47; --accent:#5b8def; --accent-soft:#25324d; --danger:#ef6b5b; --ok:#4ade80; } }
   :root[data-theme="dark"] { --bg:#14171c; --card:#1e232b; --text:#e8ebf0; --muted:#9aa3b2; --line:#343b47; --accent:#5b8def; --accent-soft:#25324d; --danger:#ef6b5b; --ok:#4ade80; }
   html { scroll-padding-top:env(safe-area-inset-top,0px); }
+  [hidden] { display:none !important; }
   body { margin:0; font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif; background:var(--bg); color:var(--text); }
   main { max-width:860px; margin:0 auto; padding:16px; display:grid; gap:16px; }
   section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
@@ -41,7 +42,7 @@
 
   /* ---------- ขั้นตอน / แบบทดสอบ ---------- */
   .steps { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .steps span { flex:1 1 120px; font-size:.8rem; text-align:center; padding:6px 4px; border-radius:8px; background:var(--bg); color:var(--muted); border:1px solid var(--line); }
+  .steps span { cursor:pointer; flex:1 1 120px; font-size:.8rem; text-align:center; padding:6px 4px; border-radius:8px; background:var(--bg); color:var(--muted); border:1px solid var(--line); }
   .steps span.on { background:var(--accent); color:#fff; border-color:var(--accent); }
   .steps span.done { background:var(--accent-soft); color:var(--accent); }
   .step { display:none; gap:16px; } .step.on { display:grid; }
@@ -339,18 +340,19 @@ function fld(k, label, o = {}) {
 const sec = (t, inner) => `<section><h2>${t}</h2><div class="grid">${inner}</div></section>`;
 const sub = (t, inner) => `<div class="sub full"><b>${t}</b><div class="grid">${inner}</div></div>`;
 const grade = ["ดีมาก", "ดี", "พอใช้"];
-const posNames = POSITIONS.map(p => p.name);
+const posNames = POSITIONS.map(p => p.name), OTHER = "อื่นๆ (ระบุเอง)";
 const edu = ["ประถมศึกษา", "มัธยมศึกษาตอนต้น", "มัธยมศึกษาตอนปลาย", "อาชีวะศึกษา", "ปริญญาตรี"];
 const langs = ["ไทย", "อังกฤษ", "จีน", "อื่นๆ"];
 const qs = ["เป้าหมายในชีวิต", "สิ่งที่เคยทำ และรู้สึกภูมิใจในชีวิต", "สิ่งที่เคยผิดหวังที่สุดในชีวิต พร้อมบอกวิธีการรับมือ และวิธีแก้ปัญหา", "สิ่งที่จะทำเพื่อสร้าง Impact (ผลกระทบ / ผลลัพธ์ที่มีพลัง / ความเปลี่ยนแปลง) ถ้าได้เข้ามาทำงานกับบริษัทฯ"];
 const STEP_NAMES = ["1. ใบสมัคร", "2. DISC", "3. BOSI", "4. Enneagram"];
-const nav = (i, last) => `<section class="nav">${i ? `<button type="button" class="ghost" data-go="${i - 1}">ย้อนกลับ</button>` : "<span></span>"}${last ? `<button type="button" id="submitBtn">ส่งใบสมัคร</button>` : `<button type="button" data-go="${i + 1}">ถัดไป</button>`}</section>`;
+const nav = i => `<section class="nav"><div>${i ? `<button type="button" class="ghost" data-go="${i - 1}">ย้อนกลับ</button> ` : ""}${i < 3 ? `<button type="button" class="ghost" data-go="${i + 1}">ถัดไป</button>` : ""}</div><button type="button" data-submit>ส่งใบสมัคร</button></section>`;
 const today = new Date().toISOString().slice(0, 10);
 
 let h = `<div class="step" data-step="0">`;
 // 1) ตำแหน่งที่สมัคร
 h += sec("ตำแหน่งงานที่สมัคร",
-  fld("pos1", "ตำแหน่งงานที่สมัคร (1)", {req:1, opts:posNames}) + fld("pos2", "ตำแหน่งงานที่สมัคร (2)", {opts:posNames}) + fld("nick", "ชื่อเล่น") +
+  fld("pos1", "ตำแหน่งงานที่สมัคร (1)", {req:1, opts:[...posNames, OTHER]}) + fld("pos1Other", "ระบุตำแหน่ง (1) เอง") +
+  fld("pos2", "ตำแหน่งงานที่สมัคร (2)", {opts:[...posNames, OTHER]}) + fld("pos2Other", "ระบุตำแหน่ง (2) เอง") + fld("nick", "ชื่อเล่น") +
   fld("salaryExp", "เงินเดือนที่คาดหวัง (บาท)", {type:"number"}) +
   fld("intro", "แนะนำตัวท่านเอง เพื่อให้องค์กรรู้จักตัวท่านมากขึ้น", {rows:3, wide:1}));
 // 2) ประวัติส่วนตัว
@@ -421,11 +423,11 @@ h += `<div class="step" data-step="2"><section><h2>แบบทดสอบท�
 // แบบทดสอบ Enneagram
 h += `<div class="step" data-step="3"><section><h2>แบบทดสอบที่ 3: Enneagram (36 ข้อ)</h2><p class="note">ให้คะแนนแต่ละข้อว่าตรงกับตัวคุณแค่ไหน (1 = ไม่ตรงเลย, 5 = ตรงมาก)</p>` +
   ENN_Q.map((x, i) => `<div class="q"><b>${i + 1}. ${x.s}</b><div class="scale">${SCALE.map((s, v) => `<label><input type="radio" name="t_enn_${i}" value="${v + 1}" required>${v + 1}<br>${s}</label>`).join("")}</div></div>`).join("") +
-  `<p class="count" data-count="enn"></p></section>` + nav(3, true) + `</div>`;
+  `<p class="count" data-count="enn"></p></section>` + nav(3) + `</div>`;
 
 const form = document.getElementById("form");
 form.innerHTML = h;
-document.getElementById("steps").innerHTML = STEP_NAMES.map(n => `<span>${n}</span>`).join("");
+document.getElementById("steps").innerHTML = STEP_NAMES.map((n, i) => `<span role="button" tabindex="0" data-go="${i}">${n}</span>`).join("");
 
 // ส่วนสำหรับเจ้าหน้าที่ (HR)
 const HR = [["hr.status","การพิจารณาว่าจ้าง",{opts:["รอพิจารณา","นัดสัมภาษณ์","อนุมัติ","ไม่อนุมัติ"]}], ["hr.pos","ตำแหน่ง (Position)"], ["hr.dept","แผนก (Department)"],
@@ -481,10 +483,11 @@ const steps = [...form.querySelectorAll(".step")];
 function show(i) {
   cur = i;
   steps.forEach((s, j) => s.classList.toggle("on", j === i));
-  [...document.getElementById("steps").children].forEach((s, j) => { s.className = j === i ? "on" : j < i ? "done" : ""; });
   updateCounts(); saveDraft();
   document.getElementById("top").scrollIntoView({ behavior: "smooth" });
 }
+// ส่วนนี้กรอกครบหรือยัง (ไม่แจ้งเตือน)
+const stepDone = i => [...steps[i].querySelectorAll("input,select,textarea")].every(el => el.checkValidity()) && (i || sigDrawn);
 function validStep(i) {
   for (const el of steps[i].querySelectorAll("input,select,textarea")) {
     if (!el.checkValidity()) {
@@ -500,8 +503,20 @@ function updateCounts() {
   const n = p => form.querySelectorAll(`input[name^="t_${p}_"]:checked`).length;
   const set = (p, t) => { const el = form.querySelector(`[data-count="${p}"]`); if (el) el.textContent = `ตอบแล้ว ${n(p)} / ${t} ข้อ`; };
   set("disc", DISC_Q.length); set("bosi", BOSI_Q.length); set("enn", ENN_Q.length);
+  [...document.getElementById("steps").children].forEach((s, j) => {
+    const done = stepDone(j); s.className = j === cur ? "on" : done ? "done" : "";
+    s.textContent = STEP_NAMES[j] + (done ? " ✓" : ""); });
 }
-form.addEventListener("click", e => { const g = e.target.dataset.go; if (g === undefined) return; if (+g > cur && !validStep(cur)) return; show(+g); });
+// เลือกทำส่วนไหนก่อนก็ได้ ตรวจความครบถ้วนตอนกดส่ง
+const goTo = e => { const g = e.target.closest("[data-go]"); if (g) show(+g.dataset.go); };
+form.addEventListener("click", goTo);
+document.getElementById("steps").addEventListener("click", goTo);
+document.getElementById("steps").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goTo(e); } });
+// ตำแหน่งที่ระบุเอง: บังคับกรอกเมื่อเลือก "อื่นๆ"
+function syncPos() { ["pos1", "pos2"].forEach(k => { const o = form[k + "Other"], on = form[k].value === OTHER;
+  o.required = on; o.closest("label").hidden = !on; }); }
+form.pos1.addEventListener("change", syncPos); form.pos2.addEventListener("change", syncPos);
+sigCanvas.addEventListener("pointerup", () => updateCounts());
 form.addEventListener("input", () => { updateCounts(); saveDraft(); });
 form.addEventListener("submit", e => e.preventDefault());
 // คำนวณอายุจากวันเกิดให้อัตโนมัติ
@@ -509,19 +524,21 @@ form.dob.addEventListener("change", () => { const lp = lifePath(form.dob.value);
   const [y, m, d] = form.dob.value.split("-").map(Number), yy = y > 2400 ? y - 543 : y, t = new Date();
   form.age.value = t.getFullYear() - yy - ((t.getMonth() + 1 < m || (t.getMonth() + 1 === m && t.getDate() < d)) ? 1 : 0); });
 
-document.getElementById("submitBtn").addEventListener("click", async () => {
-  for (let i = 0; i < steps.length; i++) if (!validStep(i)) { if (i !== cur) { show(i); setTimeout(() => validStep(i), 400); } return; }
+form.addEventListener("click", async e => {
+  const btn = e.target.closest("[data-submit]"); if (!btn) return;
+  const miss = steps.map((_, i) => i).filter(i => !stepDone(i));
+  if (miss.length) { alert("ยังกรอกไม่ครบ: " + miss.map(i => STEP_NAMES[i]).join(", ")); const i = miss.includes(cur) ? cur : miss[0]; if (i !== cur) show(i); setTimeout(() => validStep(i), 400); return; }
   const a = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), createdAt: new Date().toISOString(), signImg: sigCanvas.toDataURL("image/png"), ans: {} };
   const fd = new FormData(form);
   a.ans.disc = DISC_Q.map((_, i) => fd.get(`t_disc_${i}`)).join("");
   a.ans.bosi = BOSI_Q.map((_, i) => fd.get(`t_bosi_${i}`)).join("");
   a.ans.enn = ENN_Q.map((_, i) => fd.get(`t_enn_${i}`)).join("");
   for (const [k, v] of fd) if (!k.startsWith("t_")) setPath(a, k, String(v).trim());
+  ["pos1", "pos2"].forEach(k => { if (a[k] === OTHER) a[k] = a[k + "Other"]; delete a[k + "Other"]; });
   // สรุปผลไว้ให้ดูใน Google Sheets ได้ทันที
   const r = results(a), f1 = r.fit[posIdx(a.pos1)], best = r.fit.slice().sort((x, y) => y.total - x.total)[0];
   a.summary = { fit1: f1 ? f1.total : "", best: `${best.p.name} (${best.total}%)`, disc: DISC_INFO[r.discTop][0], bosi: BOSI_INFO[r.bosiTop][0],
     enn: ENN_INFO[r.order[0]][0], lp: r.lp ? r.lp.n : "", ceo: r.comp ? `${r.comp.score} (${r.comp.level})` : "" };
-  const btn = document.getElementById("submitBtn");
   btn.disabled = true; btn.textContent = "กำลังส่ง…";
   try { await api.submit(a); }
   catch (e) { alert("ส่งไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วกดส่งอีกครั้ง (ข้อมูลที่กรอกยังอยู่ครบ)\n\n" + errMsg(e)); return; }
@@ -710,7 +727,7 @@ document.getElementById("modeNote").textContent = MODE === "local"
 function route() { const hr = location.hash === "#hr" || document.body.dataset.hr === "1"; document.getElementById("hrPanel").hidden = !hr; if (hr) { refresh(); document.getElementById("hrPanel").scrollIntoView(); } }
 document.getElementById("hrLink").addEventListener("click", e => { e.preventDefault(); document.body.dataset.hr = "1"; route(); });
 window.addEventListener("hashchange", route);
-show(loadDraft()); route();
+show(loadDraft()); syncPos(); updateCounts(); route();
 </script>
 </body>
 </html>
