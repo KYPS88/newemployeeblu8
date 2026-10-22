@@ -33,25 +33,30 @@ CEO เกิด 22/04/1988 (2531) → 2+2+0+4+1+9+8+8 = 34 → 7 แล้ว�
 
 > แบบทดสอบเป็นฉบับย่อที่ทำขึ้นเพื่อใช้ประกอบการสัมภาษณ์ ควรใช้ร่วมกับการสัมภาษณ์และการทดสอบทักษะ ส่วนเลขศาสตร์ไม่มีหลักฐานทางวิทยาศาสตร์รองรับ จึงไม่ควรใช้เป็นเกณฑ์ตัดสินการจ้างงาน
 
-## ⚠️ ข้อมูลเก็บที่ไหน
-ข้อมูลเก็บใน **เบราว์เซอร์ของเครื่องที่ใช้กรอก** (localStorage) เหมือนไฟล์เดิม
-- **ใช้ได้ทันที:** ให้ผู้สมัครกรอกบนแท็บเล็ตหรือคอมพิวเตอร์ของบริษัท แล้ว HR เปิด `#hr` บนเครื่องเดียวกัน
-- **ให้ผู้สมัครกรอกจากมือถือตัวเอง:** ต้องส่งข้อมูลเข้า Google Sheets ตามขั้นตอนด้านล่าง
+## เปิดให้ผู้สมัครกรอกจากมือถือ
 
-### ส่งข้อมูลเข้า Google Sheets (ไม่บังคับ)
-1. สร้าง Google Sheet ใหม่ → เมนู Extensions → Apps Script แล้ววางโค้ดนี้:
-```js
-function doPost(e) {
-  const a = JSON.parse(e.postData.contents);
-  const ss = SpreadsheetApp.getActive();
-  const sh = ss.getSheetByName('applicants') || ss.insertSheet('applicants');
-  if (sh.getLastRow() === 0) sh.appendRow(['เวลา', 'ชื่อ', 'ตำแหน่ง 1', 'โทร', 'อีเมล', 'json']);
-  let j = JSON.stringify(a);
-  if (j.length > 49000) j = JSON.stringify(Object.assign({}, a, { signImg: '' })); // 1 ช่องเก็บได้ไม่เกิน 50,000 ตัวอักษร
-  sh.appendRow([new Date(), a.nameTh, a.pos1, a.phone, a.email, j]);
-  return ContentService.createTextOutput('ok');
-}
-```
-2. Deploy → New deployment → Web app → Execute as: Me, Who has access: Anyone → คัดลอก URL
-3. ใส่ URL ใน `CONFIG.submitUrl` ใน `index.html`
-4. วิธีดูผลหรือพิมพ์: คัดลอกช่อง `json` ของผู้สมัคร → เปิด `#hr` → กด "นำเข้าข้อมูลผู้สมัคร (JSON)"
+ลิงก์หน้าเว็บ (GitHub Pages): **https://kyps88.github.io/newemployeeblu8/**
+ลิงก์หน้า HR: **https://kyps88.github.io/newemployeeblu8/#hr**
+
+### 1) เปิด GitHub Pages (ทำครั้งเดียว)
+GitHub → repo นี้ → **Settings → Pages** → Source: **Deploy from a branch** → Branch: `claude/nice-clarke-y97yo3` โฟลเดอร์ `/ (root)` → Save
+รอ 1–2 นาที แล้วลิงก์ด้านบนจะใช้งานได้
+
+### 2) เชื่อม Google Sheets เพื่อเก็บข้อมูลผู้สมัคร (ทำครั้งเดียว ประมาณ 5 นาที)
+หน้าเว็บบน GitHub เป็นไฟล์ธรรมดา ไม่มีที่เก็บข้อมูล จึงต้องส่งข้อมูลไปเก็บใน Google Sheets ของบริษัท
+1. สร้าง Google Sheet ใหม่ (เช่นชื่อ "ผู้สมัครงาน") → เมนู **ส่วนขยาย (Extensions) → Apps Script**
+2. ลบโค้ดเดิมในไฟล์ `Code.gs` แล้ววางโค้ดจากไฟล์ [`apps-script/Code.gs`](apps-script/Code.gs)
+3. **ตั้งรหัสผ่าน HR** ที่บรรทัด `const HR_PASSWORD = '...'` (อย่าใส่รหัสจริงลงใน GitHub เพราะ repo นี้เป็นสาธารณะ)
+4. กดปุ่ม **+ (เพิ่มไฟล์) → HTML** ตั้งชื่อ `index` แล้ววางโค้ดทั้งหมดจาก `index.html` (ใช้กรณีต้องการเปิดเว็บผ่านลิงก์ของ Google แทน GitHub)
+5. กด **Deploy → New deployment** → ประเภท **Web app** → Execute as: **Me** → Who has access: **Anyone** → Deploy → อนุญาตสิทธิ์
+6. คัดลอก **Web app URL** (ลงท้ายด้วย `/exec`) แล้วใส่ใน `index.html` ที่ `CONFIG.apiUrl` (หรือส่งให้ Claude ใส่ให้)
+
+เมื่อเสร็จแล้ว:
+- ผู้สมัครกรอกจากมือถือที่ลิงก์ GitHub → ข้อมูลเข้า Google Sheet แท็บ "ผู้สมัคร" ทันที พร้อมสรุปผลทดสอบ % ความเหมาะสม และคะแนนเข้ากับ CEO
+- HR เปิดหน้า `#hr` → ใส่รหัสผ่าน → ดูผล บันทึกสถานะ ลบ และพิมพ์ A4 ได้จากทุกเครื่อง
+- ทางเลือก: ใช้ลิงก์ `/exec` ของ Google เป็นหน้าใบสมัครได้เลยโดยไม่ต้องใช้ GitHub (หน้า HR คือ `/exec?hr=1`)
+
+ถ้าแก้ `Code.gs` ภายหลัง ต้องกด Deploy → Manage deployments → แก้ไข (ไอคอนดินสอ) → Version: New version ทุกครั้ง
+
+### ถ้ายังไม่เชื่อม Google Sheets
+หน้าเว็บจะเก็บข้อมูลไว้ในเบราว์เซอร์ของเครื่องที่กรอกเท่านั้น เหมาะกับการให้ผู้สมัครกรอกบนแท็บเล็ตของบริษัทแล้ว HR เปิด `#hr` บนเครื่องเดียวกัน

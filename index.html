@@ -126,9 +126,11 @@
   <section id="hrPanel" hidden>
     <h2>สำหรับเจ้าหน้าที่ HR · รายชื่อผู้สมัคร (<span id="count">0</span>)</h2>
     <p class="note">กด "พิมพ์" แล้วเลือก "บันทึกเป็น PDF" หรือสั่งพิมพ์กระดาษ A4 ได้ทันที</p>
+    <div id="login" class="grid" hidden><label>รหัสผ่าน HR<input id="hrKey" type="password" autocomplete="current-password"></label><div><button type="button" id="loginBtn">เข้าสู่ระบบ</button></div></div>
+    <p class="note" id="modeNote"></p>
     <div id="list"></div>
+    <button class="ghost" id="reloadBtn" type="button">โหลดรายชื่อใหม่</button>
     <button class="ghost" id="exportBtn" type="button">คัดลอกเป็น CSV (วางใน Excel ได้)</button>
-    <button class="ghost" id="importBtn" type="button">นำเข้าข้อมูลผู้สมัคร (JSON)</button>
   </section>
 </main>
 <footer><a href="#hr" id="hrLink">สำหรับเจ้าหน้าที่ HR</a></footer>
@@ -142,8 +144,14 @@ const CONFIG = {
   company: "บริษัท อินฟินิตี้ บลู จำกัด",
   ceoLabel: "CEO",
   ceoDob: "1988-04-22",          // 22 เม.ย. 2531 → เลขเส้นทางชีวิต 7 (ตาราง NUM ด้านล่างใช้เลข 7 เป็นฐาน)
-  submitUrl: ""                  // (ไม่บังคับ) URL ของ Google Apps Script เพื่อส่งข้อมูลเข้า Google Sheets ดู README
+  apiUrl: ""                     // ใช้เฉพาะกรณีโฮสต์หน้านี้เองนอก Apps Script: ใส่ URL /exec ของ Apps Script (ดู README)
 };
+/* โหมดจัดเก็บข้อมูล
+   gas   = เปิดผ่านลิงก์ Apps Script (แนะนำ) → บันทึกลง Google Sheets โดยตรง
+   url   = โฮสต์หน้านี้ที่อื่น แล้วส่งข้อมูลไป Apps Script ผ่าน CONFIG.apiUrl
+   local = เก็บในเบราว์เซอร์เครื่องนี้เท่านั้น (เช่น แท็บเล็ตที่บริษัท) */
+const GAS = typeof google !== "undefined" && google.script && google.script.run;
+const MODE = GAS ? "gas" : CONFIG.apiUrl ? "url" : "local";
 
 /* ตำแหน่งงาน + โปรไฟล์ที่เหมาะสม
    disc  = สัดส่วนที่เหมาะ [D, I, S, C] (รวม = 1)
@@ -426,7 +434,21 @@ HR.forEach(([k, l]) => L[k] = "HR: " + l);
 
 /* ---------- จัดเก็บ ---------- */
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
-function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { alert("บันทึกไม่สำเร็จ (พื้นที่เก็บข้อมูลของเบราว์เซอร์เต็มหรือถูกปิด)"); return false; } }
+function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { throw new Error("บันทึกไม่สำเร็จ (พื้นที่เก็บข้อมูลของเบราว์เซอร์เต็มหรือถูกปิด)"); } }
+function gasCall(fn, ...args) { return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args)); }
+async function urlCall(payload) {
+  const r = await fetch(CONFIG.apiUrl, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+  const j = await r.json(); if (j.error) throw new Error(j.error); return j.result;
+}
+const remote = (fn, payload) => MODE === "gas" ? gasCall(fn, payload) : urlCall({ fn, payload });
+// ทุกคำสั่งรับ/ส่งข้อมูลผ่านตรงนี้ ไม่ว่าจะเก็บที่ Google Sheets หรือในเครื่อง
+const api = {
+  submit: a => MODE === "local" ? (save([...load(), a]), "ok") : remote("apiSubmit", a),
+  list: key => MODE === "local" ? load() : remote("apiList", { key }),
+  saveHr: (key, id, hr) => { if (MODE !== "local") return remote("apiSaveHr", { key, id, hr }); const d = load(), x = d.find(y => y.id === id); if (x) x.hr = hr; save(d); },
+  remove: (key, id) => MODE === "local" ? save(load().filter(x => x.id !== id)) : remote("apiRemove", { key, id })
+};
+const errMsg = e => (e && e.message) || String(e);
 function setPath(o, path, v) { const p = path.split("."); let c = o; p.forEach((k, i) => { if (i === p.length - 1) c[k] = v; else c = c[k] = c[k] || {}; }); }
 function flat(o, p = "") { let r = {}; for (const k in o) { const v = o[k], key = p ? p + "." + k : k; if (v && typeof v === "object") Object.assign(r, flat(v, key)); else r[key] = v; } return r; }
 
@@ -489,18 +511,24 @@ form.dob.addEventListener("change", () => { const lp = lifePath(form.dob.value);
 
 document.getElementById("submitBtn").addEventListener("click", async () => {
   for (let i = 0; i < steps.length; i++) if (!validStep(i)) { if (i !== cur) { show(i); setTimeout(() => validStep(i), 400); } return; }
-  const a = { id: Date.now().toString(), createdAt: new Date().toISOString(), signImg: sigCanvas.toDataURL("image/png"), ans: {} };
+  const a = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), createdAt: new Date().toISOString(), signImg: sigCanvas.toDataURL("image/png"), ans: {} };
   const fd = new FormData(form);
   a.ans.disc = DISC_Q.map((_, i) => fd.get(`t_disc_${i}`)).join("");
   a.ans.bosi = BOSI_Q.map((_, i) => fd.get(`t_bosi_${i}`)).join("");
   a.ans.enn = ENN_Q.map((_, i) => fd.get(`t_enn_${i}`)).join("");
   for (const [k, v] of fd) if (!k.startsWith("t_")) setPath(a, k, String(v).trim());
-  const d = load(); d.push(a);
-  if (!save(d)) return;
-  if (CONFIG.submitUrl) { try { await fetch(CONFIG.submitUrl, { method:"POST", mode:"no-cors", headers:{ "Content-Type":"text/plain" }, body: JSON.stringify(a) }); } catch (e) {} }
+  // สรุปผลไว้ให้ดูใน Google Sheets ได้ทันที
+  const r = results(a), f1 = r.fit[posIdx(a.pos1)], best = r.fit.slice().sort((x, y) => y.total - x.total)[0];
+  a.summary = { fit1: f1 ? f1.total : "", best: `${best.p.name} (${best.total}%)`, disc: DISC_INFO[r.discTop][0], bosi: BOSI_INFO[r.bosiTop][0],
+    enn: ENN_INFO[r.order[0]][0], lp: r.lp ? r.lp.n : "", ceo: r.comp ? `${r.comp.score} (${r.comp.level})` : "" };
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true; btn.textContent = "กำลังส่ง…";
+  try { await api.submit(a); }
+  catch (e) { alert("ส่งไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วกดส่งอีกครั้ง (ข้อมูลที่กรอกยังอยู่ครบ)\n\n" + errMsg(e)); return; }
+  finally { btn.disabled = false; btn.textContent = "ส่งใบสมัคร"; }
   try { localStorage.removeItem(DRAFT); } catch (e) {}
   form.reset(); sigClear(); form.hidden = true; document.getElementById("steps").hidden = true;
-  document.getElementById("doneBox").hidden = false; render();
+  document.getElementById("doneBox").hidden = false; if (MODE === "local") refresh();
   document.getElementById("doneBox").scrollIntoView({ behavior: "smooth" });
 });
 document.getElementById("newBtn").onclick = () => { form.hidden = false; document.getElementById("steps").hidden = false; document.getElementById("doneBox").hidden = true; show(0); };
@@ -522,8 +550,17 @@ function resultHTML(a) {
     <div class="kv"><small>ความเข้ากันกับ ${esc(CONFIG.ceoLabel)} (เลขศาสตร์พีทาโกรัส)</small>${r.lp ? `เลขเส้นทางชีวิตผู้สมัคร <b>${r.lp.n}</b> · ${CONFIG.ceoLabel} เลข ${r.ceo.n} → ${r.comp ? `<b>${r.comp.score} คะแนน (${r.comp.level})</b> ${r.comp.why}` : "-"}` : "ไม่มีวันเกิด"}</div></div>`;
 }
 let openId = null;
+let DATA = [], hrKey = "";
+try { hrKey = sessionStorage.getItem("hrKey") || ""; } catch (e) {}
+async function refresh() {
+  const list = document.getElementById("list"), login = document.getElementById("login");
+  if (MODE !== "local" && !hrKey) { login.hidden = false; list.innerHTML = ""; document.getElementById("count").textContent = "-"; return; }
+  list.innerHTML = '<div class="note">กำลังโหลด…</div>';
+  try { DATA = (await api.list(hrKey)) || []; login.hidden = true; render(); }
+  catch (e) { hrKey = ""; try { sessionStorage.removeItem("hrKey"); } catch (x) {} login.hidden = false; list.innerHTML = `<div class="note" style="color:var(--danger)">${esc(errMsg(e))}</div>`; }
+}
 function render() {
-  const data = load();
+  const data = DATA;
   document.getElementById("count").textContent = data.length;
   const list = document.getElementById("list");
   if (!data.length) { list.innerHTML = '<div class="note">ยังไม่มีผู้สมัคร</div>'; return; }
@@ -541,13 +578,14 @@ function render() {
 }
 document.getElementById("list").addEventListener("click", e => {
   const act = e.target.dataset.act; if (!act) return;
-  const box = e.target.closest(".item"), id = box.dataset.id, a = load().find(x => x.id === id);
+  const box = e.target.closest(".item"), id = box.dataset.id, a = DATA.find(x => x.id === id);
   if (act === "printApp") return doPrint(appHTML(a), "ใบสมัครงาน_" + (a.nameTh || ""));
   if (act === "printRep") return doPrint(reportHTML(a), "ผลประเมิน_" + (a.nameTh || ""));
   if (act === "printAll") return doPrint(reportHTML(a) + `<div class="pb"></div>` + appHTML(a), "ใบสมัครและผลประเมิน_" + (a.nameTh || ""));
   if (act === "toggle") { openId = openId === id ? null : id; render(); }
-  if (act === "del") { if (confirm("ลบผู้สมัครคนนี้?")) { save(load().filter(x => x.id !== id)); render(); } }
-  if (act === "hr") { const d = load(), x = d.find(y => y.id === id); box.querySelectorAll("[data-hr]").forEach(i => setPath(x, i.dataset.hr, i.value)); save(d); render(); }
+  const run = async (fn, okMsg) => { e.target.disabled = true; try { await fn(); await refresh(); if (okMsg) alert(okMsg); } catch (x) { alert("ไม่สำเร็จ: " + errMsg(x)); e.target.disabled = false; } };
+  if (act === "del") { if (confirm("ลบผู้สมัครคนนี้?")) run(() => api.remove(hrKey, id)); }
+  if (act === "hr") { const hr = {}; box.querySelectorAll("[data-hr]").forEach(i => hr[i.dataset.hr.slice(3)] = i.value); run(() => api.saveHr(hrKey, id, hr), "บันทึกแล้ว"); }
 });
 
 /* =====================================================================
@@ -651,7 +689,7 @@ function appHTML(a) {
 
 /* ---------- CSV / นำเข้า ---------- */
 document.getElementById("exportBtn").addEventListener("click", async () => {
-  const rows = load().map(a => { const r = results(a), o = flat(a); delete o.signImg;
+  const rows = DATA.map(a => { const r = results(a), o = flat(a); delete o.signImg;
     DISC_K.forEach((k, i) => o["DISC " + k + " %"] = pct(r.disc[i])); BOSI_K.forEach((k, i) => o["BOSI " + k + " %"] = pct(r.bosi[i]));
     o["Enneagram ไทป์หลัก"] = r.order[0] + 1; r.fit.forEach(f => o["เหมาะสม: " + f.p.name + " %"] = f.total);
     o["เลขเส้นทางชีวิต"] = r.lp?.n ?? ""; o["เข้ากับ CEO (คะแนน)"] = r.comp?.score ?? ""; return o; });
@@ -661,15 +699,16 @@ document.getElementById("exportBtn").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(csv); alert("คัดลอกแล้ว วางใน Excel/Google Sheets ได้เลย"); }
   catch (e) { prompt("คัดลอกข้อความนี้:", csv); }
 });
-document.getElementById("importBtn").addEventListener("click", () => {
-  const s = prompt("วางข้อมูล JSON ของผู้สมัคร (1 คน หรือหลายคนเป็น [ ... ]) จากคอลัมน์ json ใน Google Sheets:"); if (!s) return;
-  try { const x = JSON.parse(s), arr = Array.isArray(x) ? x : [x], d = load();
-    arr.forEach(a => { if (a && a.id && !d.some(y => y.id === a.id)) d.push(a); }); save(d); render(); alert("นำเข้าเรียบร้อย"); }
-  catch (e) { alert("รูปแบบข้อมูลไม่ถูกต้อง"); }
-});
+document.getElementById("reloadBtn").onclick = refresh;
+document.getElementById("loginBtn").onclick = () => { hrKey = document.getElementById("hrKey").value.trim(); try { sessionStorage.setItem("hrKey", hrKey); } catch (e) {} refresh(); };
+document.getElementById("hrKey").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
 
 /* ---------- เริ่มต้น ---------- */
-function route() { const hr = location.hash === "#hr"; document.getElementById("hrPanel").hidden = !hr; if (hr) { render(); document.getElementById("hrPanel").scrollIntoView(); } }
+document.getElementById("modeNote").textContent = MODE === "local"
+  ? "⚠️ โหมดเก็บในเครื่อง: เห็นเฉพาะใบสมัครที่กรอกบนอุปกรณ์เครื่องนี้ (ยังไม่ได้เชื่อม Google Sheets)"
+  : "ข้อมูลเก็บใน Google Sheets ของบริษัท";
+function route() { const hr = location.hash === "#hr" || document.body.dataset.hr === "1"; document.getElementById("hrPanel").hidden = !hr; if (hr) { refresh(); document.getElementById("hrPanel").scrollIntoView(); } }
+document.getElementById("hrLink").addEventListener("click", e => { e.preventDefault(); document.body.dataset.hr = "1"; route(); });
 window.addEventListener("hashchange", route);
 show(loadDraft()); route();
 </script>
