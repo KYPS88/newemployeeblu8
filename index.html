@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ใบสมัครงาน - บริษัท อินฟินิตี้ บลู จำกัด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    --bg:#f6f7f9; --card:#fff; --text:#1d2430; --muted:#667085; --line:#d9dde4; --accent:#2563eb; --accent-soft:#e8efff; --danger:#c0392b; --ok:#15803d; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg:#14171c; --card:#1e232b; --text:#e8ebf0; --muted:#9aa3b2; --line:#343b47; --accent:#5b8def; --accent-soft:#25324d; --danger:#ef6b5b; --ok:#4ade80; } }
+  :root[data-theme="dark"] { --bg:#14171c; --card:#1e232b; --text:#e8ebf0; --muted:#9aa3b2; --line:#343b47; --accent:#5b8def; --accent-soft:#25324d; --danger:#ef6b5b; --ok:#4ade80; }
+  html { scroll-padding-top:env(safe-area-inset-top,0px); }
+  body { margin:0; font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:860px; margin:0 auto; padding:16px; display:grid; gap:16px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  h1 { margin:0 0 6px; font-size:1.3rem; } h2 { margin:0 0 8px; font-size:1.1rem; }
+  .note { color:var(--muted); font-size:.85rem; line-height:1.5; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0 12px; }
+  .full { grid-column:1/-1; }
+  .sub { border-top:1px dashed var(--line); margin-top:10px; padding-top:6px; }
+  .sub > b { font-size:.9rem; }
+  label { display:block; font-size:.85rem; color:var(--muted); margin-top:8px; }
+  input,select,textarea { width:100%; box-sizing:border-box; padding:8px; margin-top:3px; font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:8px; }
+  input[type=checkbox], input[type=radio] { width:auto; margin:0 6px 0 0; }
+  button { font:inherit; padding:9px 16px; border-radius:8px; border:0; cursor:pointer; background:var(--accent); color:#fff; margin-top:12px; }
+  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+  button.del { background:transparent; color:var(--danger); border:1px solid var(--danger); }
+  button.sm { padding:4px 10px; margin:4px 4px 0 0; }
+  .item { border-top:1px solid var(--line); padding:10px 0; }
+  .head { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+  .head small { color:var(--muted); display:block; }
+  .detail { display:none; margin-top:10px; background:var(--bg); border-radius:8px; padding:10px; }
+  .detail.open { display:block; }
+  .kv { font-size:.9rem; padding:3px 0; border-bottom:1px solid var(--line); }
+  .kv small { display:block; color:var(--muted); }
+  .badge { font-size:.75rem; border:1px solid var(--accent); color:var(--accent); border-radius:99px; padding:1px 8px; }
+  canvas#sig { display:block; width:100%; max-width:600px; height:auto; aspect-ratio:10/3; background:#fff; border:1px solid var(--line); border-radius:8px; touch-action:none; cursor:crosshair; margin-top:4px; }
+
+  /* ---------- ขั้นตอน / แบบทดสอบ ---------- */
+  .steps { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .steps span { flex:1 1 120px; font-size:.8rem; text-align:center; padding:6px 4px; border-radius:8px; background:var(--bg); color:var(--muted); border:1px solid var(--line); }
+  .steps span.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .steps span.done { background:var(--accent-soft); color:var(--accent); }
+  .step { display:none; gap:16px; } .step.on { display:grid; }
+  .nav { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .q { border-top:1px solid var(--line); padding:10px 0; }
+  .q > b { display:block; font-size:.95rem; margin-bottom:4px; }
+  .opts { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:6px; }
+  .opts label, .scale label { margin:0; display:flex; align-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--text); cursor:pointer; background:var(--bg); }
+  .opts label:has(input:checked), .scale label:has(input:checked) { border-color:var(--accent); background:var(--accent-soft); }
+  .scale { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+  .scale label { justify-content:center; flex-direction:column; font-size:.75rem; text-align:center; padding:6px 2px; }
+  .scale label input { margin:0 0 3px; }
+  .count { font-size:.85rem; color:var(--muted); }
+  .done-box { text-align:center; padding:32px 16px; }
+  .fit { width:100%; border-collapse:collapse; font-size:.85rem; margin-top:6px; }
+  .fit th, .fit td { border-bottom:1px solid var(--line); padding:5px 4px; text-align:center; }
+  .fit td:first-child, .fit th:first-child { text-align:left; }
+  .fit tr.ap td { font-weight:700; }
+  .tbl-wrap { overflow-x:auto; }
+  footer { text-align:center; padding:8px 16px 24px; }
+  footer a { color:var(--muted); font-size:.8rem; }
+
+  #print { display:none; }
+  @media print {
+    @page { size:A4; margin:12mm; }
+    html, body { background:#fff !important; color:#000 !important; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    :root { padding:0 !important; }
+    main, footer { display:none !important; }
+    #print { display:block; font-size:10.5pt; line-height:1.55; }
+    #print * { color:#000; }
+    .pt { width:100%; border-collapse:collapse; margin-bottom:6px; }
+    .pt td, .pt th { border:1px solid #000; padding:3px 6px; vertical-align:top; }
+    .pt th { background:#e6e6e6; }
+    .c td, .c th { text-align:center; }
+    .ps { border:1px solid #000; background:#d9d9d9; font-weight:700; text-align:center; padding:2px; margin:8px 0 0; }
+    .pr { margin:2px 0; }
+    .v { border-bottom:1px dotted #000; font-weight:600; padding:0 4px; white-space:pre-wrap; }
+    .ph { width:30mm; height:40mm; text-align:center; vertical-align:middle !important; }
+    .pn { font-size:8.5pt; margin-top:4px; }
+    .box { min-height:14mm; white-space:pre-wrap; font-weight:600; }
+    .pb { page-break-before:always; break-before:page; }
+    .sg { text-align:right; margin-top:40px; line-height:2.6; }
+    .sl { display:inline-block; width:70mm; border-bottom:1px dotted #000; text-align:center; line-height:1; vertical-align:bottom; }
+    /* หน้ารายงานผลแบบทดสอบ (1 หน้า A4) */
+    .rp { font-size:9.5pt; line-height:1.4; }
+    .rp h3 { margin:0; font-size:13pt; }
+    .rp .rh { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:6px; }
+    .rp .cols { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+    .rp .bx { border:1px solid #000; padding:4px 6px; break-inside:avoid; }
+    .rp .bx > b { display:block; border-bottom:1px solid #999; margin-bottom:3px; }
+    .rp .bar { display:flex; align-items:center; gap:4px; margin:1px 0; font-size:8.5pt; }
+    .rp .bar i { flex:1; height:7px; border:1px solid #555; position:relative; }
+    .rp .bar i u { position:absolute; inset:0 auto 0 0; background:#555 !important; }
+    .rp .bar span:first-child { width:26mm; white-space:nowrap; overflow:hidden; }
+    .rp .bar span:last-child { width:9mm; text-align:right; }
+    .rp .tag { font-weight:700; font-size:10pt; margin-top:3px; }
+    .rp .sm { font-size:8.5pt; }
+    .rp table.ft { width:100%; border-collapse:collapse; margin-top:6px; font-size:9pt; }
+    .rp table.ft th, .rp table.ft td { border:1px solid #000; padding:2px 4px; text-align:center; }
+    .rp table.ft th { background:#e6e6e6 !important; }
+    .rp table.ft td:first-child { text-align:left; }
+    .rp table.ft tr.ap td { background:#f0f0f0 !important; font-weight:700; }
+    .rp .disc { font-size:7.5pt; color:#333 !important; margin-top:6px; border-top:1px solid #999; padding-top:3px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <section id="top">
+    <h1>ใบสมัครงาน บริษัท อินฟินิตี้ บลู จำกัด</h1>
+    <p class="note">โปรดกรอกข้อมูลส่วนบุคคลเพื่อประกอบการพิจารณารับเข้าทำงาน กรณีไม่ผ่านการพิจารณา ข้อมูลจะถูกเก็บไว้ 1 เดือนเพื่อพิจารณาตำแหน่งอื่น กรณีผ่านการพิจารณา ข้อมูลจะถูกเก็บตลอดระยะเวลาการเป็นพนักงานและต่อเนื่องอีก 10 ปี ตามพระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541</p>
+    <p class="note">ใช้เวลาประมาณ 25–35 นาที: กรอกใบสมัคร แล้วทำแบบทดสอบลักษณะนิสัย 3 ชุด (DISC, BOSI, Enneagram) ไม่มีคำตอบถูกหรือผิด ตอบตามความเป็นตัวคุณมากที่สุด ระบบบันทึกร่างให้อัตโนมัติ</p>
+    <div class="steps" id="steps"></div>
+  </section>
+  <form id="form" novalidate></form>
+  <section id="doneBox" class="done-box" hidden>
+    <h2>ส่งใบสมัครเรียบร้อย ขอบคุณค่ะ</h2>
+    <p class="note">ฝ่ายบุคคลจะติดต่อกลับทางโทรศัพท์หรืออีเมลที่ให้ไว้</p>
+    <button type="button" class="ghost" id="newBtn">กรอกใบสมัครใหม่</button>
+  </section>
+  <section id="hrPanel" hidden>
+    <h2>สำหรับเจ้าหน้าที่ HR · รายชื่อผู้สมัคร (<span id="count">0</span>)</h2>
+    <p class="note">กด "พิมพ์" แล้วเลือก "บันทึกเป็น PDF" หรือสั่งพิมพ์กระดาษ A4 ได้ทันที</p>
+    <div id="list"></div>
+    <button class="ghost" id="exportBtn" type="button">คัดลอกเป็น CSV (วางใน Excel ได้)</button>
+    <button class="ghost" id="importBtn" type="button">นำเข้าข้อมูลผู้สมัคร (JSON)</button>
+  </section>
+</main>
+<footer><a href="#hr" id="hrLink">สำหรับเจ้าหน้าที่ HR</a></footer>
+<div id="print"></div>
+
+<script>
+/* =====================================================================
+   ตั้งค่า
+   ===================================================================== */
+const CONFIG = {
+  company: "บริษัท อินฟินิตี้ บลู จำกัด",
+  ceoLabel: "CEO",
+  ceoDob: "1988-04-22",          // 22 เม.ย. 2531 → เลขเส้นทางชีวิต 7 (ตาราง NUM ด้านล่างใช้เลข 7 เป็นฐาน)
+  submitUrl: ""                  // (ไม่บังคับ) URL ของ Google Apps Script เพื่อส่งข้อมูลเข้า Google Sheets ดู README
+};
+
+/* ตำแหน่งงาน + โปรไฟล์ที่เหมาะสม
+   disc  = สัดส่วนที่เหมาะ [D, I, S, C] (รวม = 1)
+   bosi  = สัดส่วนที่เหมาะ [B, O, S, I] (รวม = 1)
+   enn   = คะแนนความเหมาะของ Enneagram แต่ละไทป์ [1..9] (0–100) */
+const POSITIONS = [
+  { id:"crm", name:"CRM (ดูแลลูกค้าสัมพันธ์)", desc:"ดูแลลูกค้าเก่า สร้างการซื้อซ้ำ ต้องใส่ใจคน สื่อสารอบอุ่น และติดตามสม่ำเสมอ",
+    disc:[.15,.35,.35,.15], bosi:[.20,.35,.30,.15], enn:[70,95,80,60,55,80,75,55,85] },
+  { id:"ads", name:"Ads Optimizer", desc:"ยิงและปรับแอด วิเคราะห์ตัวเลข ROAS/CPA ต้องรอบคอบ มุ่งผลลัพธ์ ตัดสินใจจากข้อมูล",
+    disc:[.30,.10,.10,.50], bosi:[.25,.30,.35,.10], enn:[85,50,90,55,95,75,60,75,55] },
+  { id:"content", name:"Content Creator", desc:"คิดและผลิตคอนเทนต์/ไลฟ์ ต้องกล้าแสดงออก สร้างสรรค์ ตามเทรนด์ไว",
+    disc:[.20,.50,.10,.20], bosi:[.10,.35,.15,.40], enn:[55,70,85,95,60,55,95,65,60] },
+  { id:"graphic", name:"Graphic Designer", desc:"ออกแบบภาพโฆษณาและแบรนด์ ต้องมีสุนทรียะ ละเอียด และสร้างสรรค์",
+    disc:[.10,.25,.20,.45], bosi:[.10,.15,.35,.40], enn:[80,55,70,95,80,65,75,50,65] },
+  { id:"editor", name:"Video Editor", desc:"ตัดต่อวิดีโอ ต้องอดทน ใส่ใจรายละเอียด ทำงานต่อเนื่องได้นาน",
+    disc:[.10,.20,.30,.40], bosi:[.10,.20,.45,.25], enn:[85,55,70,90,85,75,65,50,70] },
+  { id:"asst", name:"Admin Assistant", desc:"งานเอกสาร ประสานงาน ระบบหลังบ้าน ต้องเป็นระเบียบ เชื่อถือได้ ทำตามขั้นตอน",
+    disc:[.10,.15,.40,.35], bosi:[.35,.10,.45,.10], enn:[95,80,65,50,70,95,50,55,85] },
+  { id:"chat", name:"Admin ตอบแชท", desc:"ตอบแชทลูกค้าและปิดการขาย ต้องสุภาพ ใจเย็น สื่อสารไว และโน้มน้าวได้",
+    disc:[.10,.35,.40,.15], bosi:[.20,.40,.30,.10], enn:[70,95,75,55,50,80,80,50,90] }
+];
+
+/* ---------- DISC: 24 ข้อ เลือกคำที่ตรงกับตัวคุณที่สุด (ลำดับในแต่ละข้อ = D, I, S, C) ---------- */
+const DISC_Q = [
+  ["กล้าตัดสินใจ","ร่าเริง","ใจเย็น","รอบคอบ"],
+  ["ชอบแข่งขัน","ชวนคุยเก่ง","อดทน","ละเอียด"],
+  ["มุ่งผลลัพธ์","มองโลกแง่ดี","เป็นผู้ฟังที่ดี","ทำตามระเบียบ"],
+  ["เด็ดขาด","กระตือรือร้น","ประนีประนอม","มีเหตุผล"],
+  ["ชอบความท้าทาย","ชอบเข้าสังคม","มั่นคงสม่ำเสมอ","แม่นยำ"],
+  ["พูดตรง","โน้มน้าวเก่ง","ให้ความร่วมมือ","วางแผนก่อนลงมือ"],
+  ["ทำงานเร็ว","สร้างบรรยากาศสนุก","ภักดีต่อทีม","ยึดข้อเท็จจริง"],
+  ["ชอบเป็นผู้นำ","ชอบให้คนยอมรับ","ไม่ชอบความขัดแย้ง","ชอบความถูกต้อง"],
+  ["มั่นใจในตัวเอง","เป็นมิตร","สุภาพอ่อนโยน","ช่างสังเกต"],
+  ["กล้าเสี่ยง","ช่างจินตนาการ","ชอบสิ่งที่คุ้นเคย","ตรวจสอบซ้ำเสมอ"],
+  ["ไม่ยอมแพ้","แสดงออกเก่ง","เห็นใจผู้อื่น","มีมาตรฐานสูง"],
+  ["ชอบควบคุมสถานการณ์","ชอบความหลากหลาย","ชอบช่วยเหลือผู้อื่น","ใส่ใจคุณภาพ"],
+  ["ตั้งเป้าหมายชัด","สร้างแรงบันดาลใจ","ทำอะไรสม่ำเสมอ","วิเคราะห์เก่ง"],
+  ["ใจร้อน","ช่างพูด","ใจดี","สงวนท่าที"],
+  ["กล้าแสดงความเห็น","ชอบทำงานกับผู้คน","ทำงานเป็นขั้นตอน","ต้องมีข้อมูลครบก่อนตัดสินใจ"],
+  ["แก้ปัญหาเฉพาะหน้าเก่ง","ทำให้คนรอบข้างยิ้มได้","ไว้ใจได้","มีระเบียบ"],
+  ["อยากมีอิสระในการตัดสินใจ","ชอบได้รับคำชม","อยากได้ความมั่นคงในงาน","อยากให้กฎกติกาชัดเจน"],
+  ["จริงจัง","สนุกสนาน","ผ่อนคลาย","ระมัดระวัง"],
+  ["มุ่งมั่น","เปิดเผย","ถ่อมตัว","รอบรู้ในรายละเอียด"],
+  ["ผลักดันให้งานเดินหน้า","ชวนคนอื่นร่วมสนุก","สนับสนุนเพื่อนร่วมงาน","ตรวจหาข้อผิดพลาด"],
+  ["ชอบชนะ","ชอบเป็นจุดสนใจ","ชอบความสงบ","ชอบความสมบูรณ์แบบ"],
+  ["ตัดสินใจไว","ใช้ความรู้สึกนำ","คิดถึงคนอื่นก่อน","คิดก่อนพูด"],
+  ["มีพลัง","มีเสน่ห์","อดทนสูง","มีวินัย"],
+  ["เน้นผลงาน","เน้นความสัมพันธ์","เน้นความกลมเกลียว","เน้นความถูกต้อง"]
+];
+const DISC_K = ["D","I","S","C"];
+const DISC_INFO = {
+  D:["Dominance (ผู้นำ/มุ่งผลลัพธ์)","กล้าตัดสินใจ ชอบความท้าทาย เร่งให้งานเกิดผล"],
+  I:["Influence (นักสื่อสาร/โน้มน้าว)","ร่าเริง ชอบพบปะผู้คน สร้างแรงจูงใจและบรรยากาศดี"],
+  S:["Steadiness (ผู้สนับสนุน/มั่นคง)","ใจเย็น อดทน สม่ำเสมอ เป็นผู้ฟังและเพื่อนร่วมทีมที่ดี"],
+  C:["Conscientiousness (นักวิเคราะห์/รอบคอบ)","ละเอียด ยึดข้อมูลและมาตรฐาน ใส่ใจคุณภาพของงาน"]
+};
+
+/* ---------- BOSI (Entrepreneurial DNA): 16 ข้อ เลือก 1 คำตอบ (ลำดับ = B, O, S, I) ---------- */
+const BOSI_Q = [
+  ["เมื่อได้รับโปรเจกต์ใหม่ คุณจะ…", ["วางระบบและแบ่งงานให้ชัดก่อน","มองหาทางทำให้ได้ผลลัพธ์เร็วที่สุด","ศึกษาให้ลึกจนเข้าใจจริงก่อนลงมือ","คิดวิธีใหม่ที่ยังไม่มีใครทำ"]],
+  ["สิ่งที่ทำให้คุณภูมิใจในงานมากที่สุด", ["ระบบหรือทีมที่เติบโตขึ้นเรื่อยๆ","ปิดการขายได้ ยอดพุ่ง","งานคุณภาพสูงที่คนยอมรับฝีมือ","ผลงานแปลกใหม่ที่สร้างกระแส"]],
+  ["เมื่อเจอปัญหาในงาน คุณมักจะ…", ["หาต้นเหตุแล้วแก้ที่ระบบ","หาทางลัดแก้ให้จบเร็ว","ใช้ความรู้เฉพาะด้านแก้อย่างถูกวิธี","ลองแนวทางสร้างสรรค์ที่ต่างจากเดิม"]],
+  ["รูปแบบงานที่คุณชอบ", ["มีโครงสร้าง เป้าหมายชัด ขยายผลได้","ยืดหยุ่น ปรับเร็วตามโอกาส","โฟกัสเรื่องเดียวให้เชี่ยวชาญ","อิสระ ได้ทดลองสิ่งใหม่"]],
+  ["คำชมที่คุณอยากได้ยินที่สุด", ["“จัดการงานเก่งมาก”","“หัวการค้า ไวมาก”","“มืออาชีพ ละเอียดมาก”","“ไอเดียเจ๋งมาก”"]],
+  ["เมื่อเห็นเทรนด์ใหม่บนโซเชียล คุณจะ…", ["ดูว่าทำเป็นกระบวนการระยะยาวได้ไหม","รีบหยิบมาใช้ก่อนคนอื่น","ศึกษากลไกให้เข้าใจก่อน","ต่อยอดเป็นไอเดียในแบบของตัวเอง"]],
+  ["จุดที่คนรอบตัวมักบอกว่าคุณควรปรับ", ["เข้มงวด คุมงานมากไป","ใจร้อน เปลี่ยนแผนบ่อย","ช้าเพราะละเอียดเกินไป","เริ่มหลายเรื่องแต่ไม่ค่อยจบ"]],
+  ["บทบาทของคุณในการประชุม", ["สรุปประเด็นและมอบหมายงาน","เสนอทางสร้างยอดหรือผลลัพธ์","ให้ข้อมูลเชิงลึกและข้อเท็จจริง","ระดมไอเดียใหม่ๆ"]],
+  ["เป้าหมายในอีก 5 ปีของคุณ", ["เป็นหัวหน้าทีม ดูแลหน่วยงาน","มีรายได้สูงจากผลงานของตัวเอง","เป็นผู้เชี่ยวชาญระดับต้นๆ ในสายงาน","สร้างสิ่งใหม่ที่เป็นของตัวเอง"]],
+  ["ทัศนคติต่อความเสี่ยง", ["เสี่ยงได้ถ้ามีแผนรองรับ","กล้าเสี่ยงถ้าเห็นโอกาส","เลือกสิ่งที่พิสูจน์แล้วมากกว่า","ยอมเสี่ยงเพื่อทดลองสิ่งใหม่"]],
+  ["วิธีเรียนรู้สิ่งใหม่ของคุณ", ["ดูว่าคนที่ทำสำเร็จวางระบบอย่างไร","ลงมือทำเลย แล้วเรียนจากผลจริง","อ่าน/เรียนคอร์สจนรู้จริง","ลองผิดลองถูกด้วยตัวเอง"]],
+  ["งานแบบไหนที่คุณเบื่อที่สุด", ["งานที่ไม่มีเป้าหมาย ไม่วัดผล","งานซ้ำๆ ไม่มีโอกาสใหม่","งานผิวเผิน ไม่ได้ใช้ฝีมือ","งานที่ต้องทำแบบเดิมทุกวัน"]],
+  ["ถ้ายอดขายของบริษัทลดลง คุณจะ…", ["ทบทวนระบบ ทีม และ KPI","จัดโปรโมชัน/หาช่องทางขายใหม่ทันที","วิเคราะห์ข้อมูลหาสาเหตุเชิงลึก","ทำแคมเปญแปลกใหม่ดึงความสนใจ"]],
+  ["คุณตัดสินใจโดยอาศัย…", ["ภาพรวมระยะยาว","จังหวะและโอกาสตอนนี้","ข้อมูลและหลักการ","สัญชาตญาณและความเป็นไปได้ใหม่"]],
+  ["บทบาทในทีมที่ตรงกับคุณ", ["ผู้ประสานและจัดการ","ผู้หาลูกค้า/ผู้เจรจา","มือดีเฉพาะทาง","นักคิดสร้างสรรค์"]],
+  ["ถ้าได้งบก้อนหนึ่งมาพัฒนางาน คุณจะใช้กับ…", ["สร้างทีมและระบบงาน","สิ่งที่ให้ผลตอบแทนเร็ว","เครื่องมือ/ทักษะเฉพาะทาง","ทดลองสินค้าหรือไอเดียใหม่"]]
+];
+const BOSI_K = ["B","O","S","I"];
+const BOSI_INFO = {
+  B:["Builder (นักสร้างระบบ)","วางระบบ มองระยะยาว ชอบขยายทีมและกระบวนการ"],
+  O:["Opportunist (นักจับโอกาส)","ไว ยืดหยุ่น เห็นโอกาสทางการขายและลงมือทันที"],
+  S:["Specialist (ผู้เชี่ยวชาญ)","ลงลึก เชี่ยวชาญเฉพาะด้าน ใส่ใจคุณภาพและความถูกต้อง"],
+  I:["Innovator (นักสร้างสรรค์)","คิดนอกกรอบ ชอบทดลองและสร้างสิ่งใหม่"]
+};
+
+/* ---------- Enneagram: 36 ข้อ (4 ข้อต่อไทป์) ให้คะแนน 1–5 ---------- */
+const ENN_S = [
+  ["ฉันมีมาตรฐานสูงและอยากให้ทุกอย่างถูกต้อง","ฉันหงุดหงิดเมื่อเห็นงานที่ทำไม่เรียบร้อย","ฉันมักตำหนิตัวเองเมื่อทำพลาด","ฉันยึดหลักถูก-ผิดอย่างชัดเจน"],
+  ["ฉันมีความสุขเมื่อได้ช่วยเหลือคนอื่น","ฉันรับรู้ได้ไวว่าคนรอบข้างต้องการอะไร","ฉันปฏิเสธคนอื่นได้ยาก","ฉันอยากเป็นคนที่คนอื่นรักและต้องการ"],
+  ["ฉันตั้งเป้าหมายและมุ่งมั่นทำให้สำเร็จ","ภาพลักษณ์และความสำเร็จสำคัญกับฉัน","ฉันปรับตัวตามสถานการณ์เพื่อให้ได้ผลลัพธ์","ฉันชอบได้รับการยอมรับในผลงาน"],
+  ["ฉันอยากเป็นตัวของตัวเองและไม่เหมือนใคร","ฉันมีอารมณ์ความรู้สึกลึกซึ้ง","ฉันให้คุณค่ากับความงามและสุนทรียะ","บางครั้งฉันรู้สึกว่าคนอื่นไม่เข้าใจฉัน"],
+  ["ฉันชอบหาความรู้และเข้าใจสิ่งต่างๆ อย่างลึกซึ้ง","ฉันต้องการเวลาส่วนตัวเพื่อเติมพลัง","ฉันสังเกตให้เข้าใจก่อนแล้วค่อยลงมือ","ฉันใช้การคิดวิเคราะห์มากกว่าแสดงอารมณ์"],
+  ["ฉันมักคิดเผื่อสิ่งที่อาจผิดพลาด","ความมั่นคงและความไว้วางใจสำคัญกับฉัน","ฉันภักดีต่อทีมและองค์กร","ฉันชอบมีแผนสำรองเสมอ"],
+  ["ฉันชอบประสบการณ์ใหม่และความสนุก","ฉันมีไอเดียมากมายในเวลาเดียวกัน","ฉันมองโลกแง่ดีและเลี่ยงเรื่องเครียด","ฉันเบื่อง่ายถ้างานซ้ำซาก"],
+  ["ฉันกล้าตัดสินใจและรับผิดชอบผลที่ตามมา","ฉันพูดตรงและไม่กลัวการปะทะ","ฉันชอบเป็นคนคุมสถานการณ์","ฉันปกป้องคนที่อ่อนแอกว่า"],
+  ["ฉันรักความสงบและหลีกเลี่ยงความขัดแย้ง","ฉันเข้าใจมุมมองของทุกฝ่าย","ฉันใจเย็นและเข้ากับคนง่าย","บางครั้งฉันผัดวันเรื่องที่ไม่อยากทำ"]
+];
+// สลับลำดับ: ข้อ 1 ของทุกไทป์ แล้วข้อ 2 ของทุกไทป์ ... เพื่อไม่ให้เดาไทป์ได้
+const ENN_Q = []; for (let j = 0; j < 4; j++) for (let t = 0; t < 9; t++) ENN_Q.push({ t, s: ENN_S[t][j] });
+const ENN_INFO = [
+  ["ไทป์ 1 นักปฏิรูป (The Reformer)","มีหลักการ รับผิดชอบ ใส่ใจความถูกต้องและมาตรฐาน"],
+  ["ไทป์ 2 ผู้ให้ (The Helper)","อบอุ่น ใส่ใจผู้อื่น ชอบช่วยเหลือและดูแลความสัมพันธ์"],
+  ["ไทป์ 3 ผู้มุ่งความสำเร็จ (The Achiever)","มุ่งเป้าหมาย ขยัน ปรับตัวเก่ง ใส่ใจผลงาน"],
+  ["ไทป์ 4 ศิลปิน (The Individualist)","สร้างสรรค์ มีเอกลักษณ์ ละเอียดอ่อนด้านอารมณ์และสุนทรียะ"],
+  ["ไทป์ 5 นักคิด (The Investigator)","ช่างสังเกต วิเคราะห์ลึก ชอบความรู้และความเป็นอิสระ"],
+  ["ไทป์ 6 ผู้ภักดี (The Loyalist)","รอบคอบ ภักดี มองความเสี่ยงล่วงหน้า ทำงานเป็นทีมดี"],
+  ["ไทป์ 7 ผู้รักสนุก (The Enthusiast)","คิดไว มีพลัง ไอเดียเยอะ ชอบประสบการณ์ใหม่"],
+  ["ไทป์ 8 ผู้นำ (The Challenger)","กล้าตัดสินใจ มั่นใจ พูดตรง ปกป้องทีม"],
+  ["ไทป์ 9 ผู้ประสาน (The Peacemaker)","ใจเย็น ประนีประนอม รับฟัง ทำให้ทีมกลมเกลียว"]
+];
+const SCALE = ["ไม่ตรงเลย","ไม่ค่อยตรง","กลางๆ","ค่อนข้างตรง","ตรงมาก"];
+
+/* ---------- เลขศาสตร์พีทาโกรัส: คะแนนความเข้ากันกับ CEO (เลขเส้นทางชีวิต 7) ตามไฟล์ numerology_compatibility_7.xlsx ---------- */
+const NUM = {
+  7:[100,"เลขเดียวกัน เข้าใจความต้องการพื้นที่ส่วนตัวและความช่างคิดของกันและกัน"],
+  22:[90,"ตรงกับเลขวันเกิด 22 ของ CEO เสริมกันระหว่างความคิดลึกกับการลงมือสร้าง"],
+  4:[88,"มั่นคง เป็นระบบ ให้ความสงบที่เลข 7 ต้องการ"],
+  9:[84,"มองกว้าง ใจกว้าง เปิดพื้นที่ให้เลข 7 ได้คิดและเรียนรู้"],
+  5:[80,"พาเลข 7 ออกจากกรอบ แต่ต่างกันเรื่องความต้องการอิสระกับความสงบ"],
+  11:[78,"ลึกซึ้งและใช้สัญชาตญาณเหมือนกัน แต่อารมณ์อ่อนไหวสูงกว่า"],
+  1:[75,"เป็นตัวของตัวเองทั้งคู่ เคารพพื้นที่กันได้ แต่ต่างเรื่องความเป็นผู้นำ"],
+  2:[68,"อบอุ่นและต้องการความใกล้ชิดมากกว่าที่เลข 7 สะดวกให้"],
+  3:[65,"ชอบสังคมและแสดงออก ต่างจากความเก็บตัวของเลข 7"],
+  33:[62,"เสียสละและทุ่มเทเพื่อผู้อื่นมาก ต่างจากโลกส่วนตัวของเลข 7"],
+  6:[58,"ใส่ใจครอบครัวและดูแลใกล้ชิด อาจทำให้เลข 7 รู้สึกถูกรบกวน"],
+  8:[55,"มุ่งวัตถุ อำนาจ และผลลัพธ์ภายนอก ต่างจากเลข 7 ที่มุ่งความเข้าใจภายใน"]
+};
+const LP_INFO = { 1:"ผู้นำ เป็นตัวของตัวเอง ริเริ่มเก่ง", 2:"ผู้ประสาน อ่อนโยน ทำงานร่วมกับคนอื่นได้ดี", 3:"นักสื่อสาร ร่าเริง สร้างสรรค์",
+  4:"ผู้สร้างความมั่นคง เป็นระบบ ขยัน", 5:"รักอิสระ ปรับตัวไว ชอบการเปลี่ยนแปลง", 6:"ผู้ดูแล รับผิดชอบ ใส่ใจคนรอบข้าง",
+  7:"นักคิด ช่างวิเคราะห์ ชอบความลึกซึ้ง", 8:"นักบริหาร มุ่งความสำเร็จและผลลัพธ์", 9:"ใจกว้าง มองภาพรวม ชอบช่วยเหลือ",
+  11:"(มาสเตอร์) ญาณหยั่งรู้สูง สร้างแรงบันดาลใจ", 22:"(มาสเตอร์) ผู้สร้างการใหญ่ เปลี่ยนความคิดเป็นของจริง", 33:"(มาสเตอร์) ครู ผู้เสียสละเพื่อผู้อื่น" };
+const numLevel = s => s >= 85 ? "เข้ากันมาก" : s >= 70 ? "เข้ากันดี" : s >= 60 ? "ต้องปรับเข้าหากัน" : "ต่างกันมาก";
+const fitLevel = s => s >= 80 ? "เหมาะมาก" : s >= 70 ? "เหมาะ" : s >= 60 ? "พอใช้" : "ไม่ค่อยเหมาะ";
+
+/* =====================================================================
+   การคำนวณผล
+   ===================================================================== */
+const sum = a => a.reduce((x, y) => x + y, 0);
+const pct = n => Math.round(n * 100);
+function countLetters(str, keys) { const c = keys.map(k => [...(str || "")].filter(x => x === k).length); const t = sum(c) || 1; return c.map(x => x / t); }
+// ความทับซ้อนของสองโปรไฟล์ (0–1): 1 = เหมือนกันทุกประการ
+const overlap = (p, w) => sum(p.map((x, i) => Math.min(x, w[i])));
+function ennRaw(str) { const r = Array(9).fill(0); [...(str || "")].forEach((v, i) => { if (ENN_Q[i]) r[ENN_Q[i].t] += +v; }); return r; } // 4–20 ต่อไทป์
+function ennTop(raw) { return raw.map((v, t) => [v, t]).sort((a, b) => b[0] - a[0] || a[1] - b[1]).map(x => x[1]); }
+
+function lifePath(iso) {
+  const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ""); if (!m) return null;
+  let y = +m[1]; if (y > 2400) y -= 543;               // กันกรณีกรอกปี พ.ศ.
+  const digits = `${m[3]}${m[2]}${y}`.split("").map(Number);
+  let s = sum(digits); const steps = [`${digits.join("+")} = ${s}`];
+  while (s > 9 && ![11, 22, 33].includes(s)) { const d = String(s).split("").map(Number); s = sum(d); steps.push(`${d.join("+")} = ${s}`); }
+  return { n: s, steps, day: +m[3], date: `${m[3]}/${m[2]}/${y + 543}` };
+}
+
+function results(a) {
+  const ans = a.ans || {};
+  const disc = countLetters(ans.disc, DISC_K), bosi = countLetters(ans.bosi, BOSI_K);
+  const raw = ennRaw(ans.enn), order = ennTop(raw);
+  const fit = POSITIONS.map(p => {
+    const d = pct(overlap(disc, p.disc)), b = pct(overlap(bosi, p.bosi));
+    const e = Math.round(p.enn[order[0]] * .65 + p.enn[order[1]] * .35);
+    return { p, d, b, e, total: Math.round((d + b + e) / 3) };
+  });
+  const lp = lifePath(a.dob), ceo = lifePath(CONFIG.ceoDob);
+  const comp = lp && NUM[lp.n] ? { score: NUM[lp.n][0], why: NUM[lp.n][1], level: numLevel(NUM[lp.n][0]) } : null;
+  return { disc, bosi, raw, order, fit, lp, ceo, comp,
+    discTop: DISC_K[disc.indexOf(Math.max(...disc))], bosiTop: BOSI_K[bosi.indexOf(Math.max(...bosi))] };
+}
+
+/* =====================================================================
+   สร้างฟอร์ม (ตามใบสมัครต้นฉบับ) + แบบทดสอบ
+   ===================================================================== */
+const KEY = "applicants", DRAFT = "applicantDraft";
+const L = {};   // ชื่อหัวข้อของแต่ละช่อง ใช้ตอนแสดงรายละเอียดและ CSV
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function fld(k, label, o = {}) {
+  L[k] = o.full || label;
+  const r = o.req ? " required" : "";
+  let c;
+  if (o.opts) c = `<select name="${k}"${r}><option value="">--</option>${o.opts.map(x => `<option>${x}</option>`).join("")}</select>`;
+  else if (o.rows) c = `<textarea name="${k}" rows="${o.rows}"${r}></textarea>`;
+  else c = `<input name="${k}" type="${o.type || "text"}"${r}${o.pat ? ` pattern="${o.pat}"` : ""}${o.max ? ` max="${o.max}"` : ""}>`;
+  return `<label class="${o.wide ? "full" : ""}">${label}${o.req ? " *" : ""}${c}</label>`;
+}
+const sec = (t, inner) => `<section><h2>${t}</h2><div class="grid">${inner}</div></section>`;
+const sub = (t, inner) => `<div class="sub full"><b>${t}</b><div class="grid">${inner}</div></div>`;
+const grade = ["ดีมาก", "ดี", "พอใช้"];
+const posNames = POSITIONS.map(p => p.name);
+const edu = ["ประถมศึกษา", "มัธยมศึกษาตอนต้น", "มัธยมศึกษาตอนปลาย", "อาชีวะศึกษา", "ปริญญาตรี"];
+const langs = ["ไทย", "อังกฤษ", "จีน", "อื่นๆ"];
+const qs = ["เป้าหมายในชีวิต", "สิ่งที่เคยทำ และรู้สึกภูมิใจในชีวิต", "สิ่งที่เคยผิดหวังที่สุดในชีวิต พร้อมบอกวิธีการรับมือ และวิธีแก้ปัญหา", "สิ่งที่จะทำเพื่อสร้าง Impact (ผลกระทบ / ผลลัพธ์ที่มีพลัง / ความเปลี่ยนแปลง) ถ้าได้เข้ามาทำงานกับบริษัทฯ"];
+const STEP_NAMES = ["1. ใบสมัคร", "2. DISC", "3. BOSI", "4. Enneagram"];
+const nav = (i, last) => `<section class="nav">${i ? `<button type="button" class="ghost" data-go="${i - 1}">ย้อนกลับ</button>` : "<span></span>"}${last ? `<button type="button" id="submitBtn">ส่งใบสมัคร</button>` : `<button type="button" data-go="${i + 1}">ถัดไป</button>`}</section>`;
+const today = new Date().toISOString().slice(0, 10);
+
+let h = `<div class="step" data-step="0">`;
+// 1) ตำแหน่งที่สมัคร
+h += sec("ตำแหน่งงานที่สมัคร",
+  fld("pos1", "ตำแหน่งงานที่สมัคร (1)", {req:1, opts:posNames}) + fld("pos2", "ตำแหน่งงานที่สมัคร (2)", {opts:posNames}) + fld("nick", "ชื่อเล่น") +
+  fld("salaryExp", "เงินเดือนที่คาดหวัง (บาท)", {type:"number"}) +
+  fld("intro", "แนะนำตัวท่านเอง เพื่อให้องค์กรรู้จักตัวท่านมากขึ้น", {rows:3, wide:1}));
+// 2) ประวัติส่วนตัว
+h += sec("ประวัติส่วนตัว (Personal Data)",
+  fld("nameTh", "ชื่อ-นามสกุล (ภาษาไทย)", {req:1}) + fld("nameEn", "ชื่อ-นามสกุล (ภาษาอังกฤษ)", {req:1}) +
+  fld("gender", "เพศ", {opts:["ชาย","หญิง"]}) +
+  fld("dob", "วัน/เดือน/ปีเกิด", {type:"date", req:1, max:today}) + fld("age", "อายุ (ปี)", {type:"number"}) +
+  fld("idNo", "หมายเลขบัตรประชาชน", {req:1, pat:"[0-9]{13}"}) + fld("idIssue", "วันที่ออกบัตร", {type:"date"}) + fld("idExp", "วันหมดอายุ", {type:"date"}) +
+  fld("height", "ส่วนสูง (ซม.)", {type:"number"}) + fld("weight", "น้ำหนัก (กก.)", {type:"number"}) + fld("blood", "กรุ๊ปเลือด", {opts:["A","B","AB","O"]}) +
+  fld("ethnic", "เชื้อชาติ") + fld("nation", "สัญชาติ") + fld("religion", "ศาสนา") + fld("home", "ภูมิลำเนา") +
+  fld("address", "ที่อยู่ปัจจุบัน", {rows:2, wide:1}) +
+  fld("phone", "โทรศัพท์", {type:"tel", req:1, pat:"[0-9\\-]{9,12}"}) + fld("email", "E-mail", {type:"email", req:1}) +
+  fld("marital", "สถานภาพครอบครัว", {opts:["โสด","สมรส","แยกกันอยู่","หม้าย","หย่าร้าง"]}) +
+  sub("คู่สมรส / บุตร", fld("sp.name", "ชื่อคู่สมรส") + fld("sp.age", "อายุคู่สมรส (ปี)", {type:"number"}) + fld("sp.job", "อาชีพคู่สมรส") + fld("sp.work", "ทำงานที่") +
+    fld("children", "จำนวนบุตร", {type:"number"}) + fld("dependents", "ภาระที่ต้องอุปการะ (คน)", {type:"number"})) +
+  fld("military", "สถานะทางการทหาร", {opts:["ศึกษาวิชาทหาร","ผ่านการเกณฑ์ทหาร","ได้รับการยกเว้น","อื่นๆ"]}) + fld("militaryOther", "ทหาร: อื่นๆ (ระบุ)") +
+  sub("บิดา", fld("fa.name", "ชื่อบิดาผู้สมัคร") + fld("fa.age", "อายุ (ปี)", {type:"number"}) + fld("fa.job", "อาชีพ") + fld("fa.work", "ทำงานที่")) +
+  sub("มารดา", fld("mo.name", "ชื่อมารดาผู้สมัคร") + fld("mo.age", "อายุ (ปี)", {type:"number"}) + fld("mo.job", "อาชีพ") + fld("mo.work", "ทำงานที่")) +
+  fld("siblings", "จำนวนพี่น้อง (รวมผู้สมัคร) (คน)", {type:"number"}) + fld("order", "ผู้สมัครเป็นคนที่", {type:"number"}) +
+  sub("บุคคลและช่องทางการติดต่อ (กรณีฉุกเฉิน)", fld("ct.name", "ชื่อ-นามสกุล") + fld("ct.rel", "ความสัมพันธ์") + fld("ct.tel", "เบอร์โทรศัพท์", {type:"tel"})));
+// 3) การศึกษา
+h += sec("ประวัติการศึกษา (Education Record)", edu.map((n, i) => sub(n,
+  fld(`edu.${i}.inst`, "ชื่อสถาบัน", {full:`${n}: ชื่อสถาบัน`}) + fld(`edu.${i}.from`, "ปีการศึกษา จาก", {full:`${n}: ปีจาก`}) +
+  fld(`edu.${i}.to`, "ถึง", {full:`${n}: ปีถึง`}) + fld(`edu.${i}.deg`, "วุฒิ", {full:`${n}: วุฒิ`}) + fld(`edu.${i}.gpa`, "เกรดเฉลี่ย", {full:`${n}: เกรดเฉลี่ย`}))).join(""));
+// 4) ภาษา
+h += sec("ความสามารถทางด้านภาษา", langs.map((n, i) => sub(n,
+  (i === 3 ? fld("lang.3.name", "ระบุภาษา", {full:"ภาษาอื่นๆ: ระบุ"}) : "") +
+  fld(`lang.${i}.speak`, "การพูด", {opts:grade, full:`${n}: การพูด`}) + fld(`lang.${i}.read`, "การอ่าน", {opts:grade, full:`${n}: การอ่าน`}) +
+  fld(`lang.${i}.write`, "การเขียน", {opts:grade, full:`${n}: การเขียน`}))).join(""));
+// 5) ประวัติการทำงาน
+h += sec("ประวัติการทำงาน", [0, 1, 2].map(i => { const p = `ที่ทำงานที่ ${i + 1}: `; return sub(`ที่ทำงานที่ ${i + 1}`,
+  fld(`job.${i}.co`, "ชื่อสถานที่ทำงาน", {full:p+"ชื่อ"}) + fld(`job.${i}.biz`, "ประเภทธุรกิจ", {full:p+"ประเภทธุรกิจ"}) +
+  fld(`job.${i}.pos`, "ตำแหน่งงาน", {full:p+"ตำแหน่ง"}) + fld(`job.${i}.pay`, "ค่าจ้าง/เงินเดือน", {full:p+"เงินเดือน"}) +
+  fld(`job.${i}.from`, "ระยะเวลาทำงาน จาก", {type:"date", full:p+"จาก"}) + fld(`job.${i}.to`, "ถึง", {type:"date", full:p+"ถึง"}) +
+  fld(`job.${i}.duty`, "ลักษณะงานที่รับผิดชอบ", {rows:2, wide:1, full:p+"หน้าที่"}) + fld(`job.${i}.why`, "เหตุผลที่ออก", {wide:1, full:p+"เหตุผลที่ออก"})); }).join(""));
+// 6) อบรม + คอมพิวเตอร์
+h += sec("ประวัติการฝึกอบรม", [0, 1, 2].map(i => sub(`หลักสูตรที่ ${i + 1}`,
+  fld(`tr.${i}.name`, "ชื่อหลักสูตร", {full:`อบรม ${i+1}: หลักสูตร`}) + fld(`tr.${i}.year`, "ปี พ.ศ.", {full:`อบรม ${i+1}: ปี`}) +
+  fld(`tr.${i}.dur`, "ระยะเวลา", {full:`อบรม ${i+1}: ระยะเวลา`}) + fld(`tr.${i}.by`, "จัดอบรมโดยสถาบัน", {full:`อบรม ${i+1}: สถาบัน`}))).join("") +
+  fld("computer", "ความสามารถในการใช้โปรแกรมคอมพิวเตอร์", {wide:1}) +
+  fld("portfolio", "ลิงก์ผลงาน / Portfolio (ถ้ามี)", {wide:1}));
+// 7) สุขภาพ
+const yn = (k, q, a, b, ex) => fld(k, q, {opts:[a, b]}) + fld(k + "D", ex, {full:`${q} - รายละเอียด`});
+h += sec("สุขภาพและข้อมูลอื่นๆ",
+  yn("disab", "มีร่างกายส่วนใดพิการหรือไม่", "ไม่มี", "มี", "ระบุ (พิการ)") + fld("disabNo", "เลขประจำตัวผู้พิการ") +
+  yn("illness", "มีโรคประจำตัวหรือไม่", "ไม่มี", "มี", "ระบุ (โรคประจำตัว)") +
+  yn("accident", "เคยได้รับอุบัติเหตุหรือไม่", "ไม่เคย", "เคย", "ระบุ (อุบัติเหตุ)") +
+  yn("union", "เคยเป็นสมาชิกหรือกรรมการสหภาพแรงงานหรือไม่", "ไม่เคย", "เคย", "ระบุชื่อบริษัท") +
+  yn("lawsuit", "เคยถูกฟ้องคดีหรือจำคุกหรือไม่", "ไม่เคย", "เคย", "ระบุ (คดี)"));
+// 8) คำถามเพิ่มเติม
+h += sec("คำถามเพิ่มเติมการสมัครงาน", qs.map((q, i) => fld(`q${i + 1}`, `${i + 1}. ${q}`, {rows:4, wide:1, full:`คำถาม ${i + 1}: ${q}`})).join(""));
+// 9) ข้อตกลง + ลายเซ็น
+L.agree = "ยอมรับข้อตกลง";
+h += `<section><h2>ข้อตกลง</h2><p class="note">ข้าพเจ้าขอรับรองว่าข้อความรายละเอียดต่างๆ ที่กรอกไว้ในใบสมัครงานนี้ถูกต้องตรงตามความเป็นจริงทุกประการ หากข้อความใดเป็นเท็จหรือตรวจพบในภายหลัง บริษัทฯ มีสิทธิพิจารณาเลิกจ้างข้าพเจ้าได้ทันทีโดยไม่ต้องจ่ายค่าชดเชยใดๆ ทั้งสิ้น และข้าพเจ้ายอมรับว่าอัตราค่าจ้างที่บริษัทฯ ตกลงให้ได้รวมถึงการทำงานระหว่างเวลาพัก และยินดีรับค่าจ้างผ่านสาขาของธนาคารที่บริษัทฯ เป็นผู้กำหนด</p>
+  <label><input type="checkbox" name="agree" value="ยอมรับ" required>ข้าพเจ้ารับทราบและยอมรับข้อตกลงข้างต้น *</label>
+  <label>ลงลายมือชื่อผู้สมัครงาน (เซ็นด้วยนิ้วหรือเมาส์ในกรอบ) *</label><canvas id="sig" width="600" height="180"></canvas><div><button type="button" class="ghost sm" id="sigClear" style="margin-top:8px">ล้างลายเซ็น</button></div><div class="grid">${fld("signDate", "วันที่", {type:"date", req:1})}</div></section>`;
+h += nav(0) + `</div>`;
+
+// แบบทดสอบ DISC — สลับตำแหน่งตัวเลือกในแต่ละข้อ
+const rot = (arr, i) => arr.map((_, j) => (j + i) % arr.length);
+h += `<div class="step" data-step="1"><section><h2>แบบทดสอบที่ 1: DISC (24 ข้อ)</h2><p class="note">แต่ละข้อ เลือก <b>1 คำที่ตรงกับตัวคุณที่สุด</b> ในการทำงาน ตอบตามความรู้สึกแรก</p>` +
+  DISC_Q.map((g, i) => `<div class="q"><b>${i + 1}. ฉันเป็นคน…</b><div class="opts">${rot(g, i).map(j => `<label><input type="radio" name="t_disc_${i}" value="${DISC_K[j]}" required>${g[j]}</label>`).join("")}</div></div>`).join("") +
+  `<p class="count" data-count="disc"></p></section>` + nav(1) + `</div>`;
+// แบบทดสอบ BOSI
+h += `<div class="step" data-step="2"><section><h2>แบบทดสอบที่ 2: BOSI (16 ข้อ)</h2><p class="note">BOSI แบ่งสไตล์การทำงานเป็น 4 แบบ คือ Builder (นักสร้างระบบ), Opportunist (นักจับโอกาส), Specialist (ผู้เชี่ยวชาญ) และ Innovator (นักสร้างสรรค์) เลือกคำตอบที่ตรงกับตัวคุณที่สุด 1 ข้อ</p>` +
+  BOSI_Q.map(([q, o], i) => `<div class="q"><b>${i + 1}. ${q}</b><div class="opts">${rot(o, i + 1).map(j => `<label><input type="radio" name="t_bosi_${i}" value="${BOSI_K[j]}" required>${o[j]}</label>`).join("")}</div></div>`).join("") +
+  `<p class="count" data-count="bosi"></p></section>` + nav(2) + `</div>`;
+// แบบทดสอบ Enneagram
+h += `<div class="step" data-step="3"><section><h2>แบบทดสอบที่ 3: Enneagram (36 ข้อ)</h2><p class="note">ให้คะแนนแต่ละข้อว่าตรงกับตัวคุณแค่ไหน (1 = ไม่ตรงเลย, 5 = ตรงมาก)</p>` +
+  ENN_Q.map((x, i) => `<div class="q"><b>${i + 1}. ${x.s}</b><div class="scale">${SCALE.map((s, v) => `<label><input type="radio" name="t_enn_${i}" value="${v + 1}" required>${v + 1}<br>${s}</label>`).join("")}</div></div>`).join("") +
+  `<p class="count" data-count="enn"></p></section>` + nav(3, true) + `</div>`;
+
+const form = document.getElementById("form");
+form.innerHTML = h;
+document.getElementById("steps").innerHTML = STEP_NAMES.map(n => `<span>${n}</span>`).join("");
+
+// ส่วนสำหรับเจ้าหน้าที่ (HR)
+const HR = [["hr.status","การพิจารณาว่าจ้าง",{opts:["รอพิจารณา","นัดสัมภาษณ์","อนุมัติ","ไม่อนุมัติ"]}], ["hr.pos","ตำแหน่ง (Position)"], ["hr.dept","แผนก (Department)"],
+  ["hr.salary","เงินเดือน (บาท/เดือน)",{type:"number"}], ["hr.allow","ค่าใช้จ่ายพิเศษ (Allowances)"], ["hr.start","วันที่เริ่มงาน",{type:"date"}], ["hr.note","บันทึกการสัมภาษณ์"]];
+HR.forEach(([k, l]) => L[k] = "HR: " + l);
+
+/* ---------- จัดเก็บ ---------- */
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { alert("บันทึกไม่สำเร็จ (พื้นที่เก็บข้อมูลของเบราว์เซอร์เต็มหรือถูกปิด)"); return false; } }
+function setPath(o, path, v) { const p = path.split("."); let c = o; p.forEach((k, i) => { if (i === p.length - 1) c[k] = v; else c = c[k] = c[k] || {}; }); }
+function flat(o, p = "") { let r = {}; for (const k in o) { const v = o[k], key = p ? p + "." + k : k; if (v && typeof v === "object") Object.assign(r, flat(v, key)); else r[key] = v; } return r; }
+
+/* ---------- ร่างอัตโนมัติ ---------- */
+function saveDraft() { try { const d = {}; for (const [k, v] of new FormData(form)) d[k] = v; d._step = cur; localStorage.setItem(DRAFT, JSON.stringify(d)); } catch (e) {} }
+function loadDraft() {
+  let d; try { d = JSON.parse(localStorage.getItem(DRAFT)); } catch (e) {} if (!d) return 0;
+  for (const k in d) { const els = form.querySelectorAll(`[name="${CSS.escape(k)}"]`);
+    els.forEach(el => { if (el.type === "radio" || el.type === "checkbox") el.checked = el.value === d[k]; else el.value = d[k]; }); }
+  return Math.min(+d._step || 0, 3);
+}
+
+/* ---------- ลายเซ็น ---------- */
+const sigCanvas = document.getElementById("sig"), sctx = sigCanvas.getContext("2d");
+let sigDrawn = false, drawing = false;
+sctx.lineWidth = 2.5; sctx.lineCap = "round"; sctx.lineJoin = "round"; sctx.strokeStyle = "#000";
+const pt = e => { const r = sigCanvas.getBoundingClientRect(); return [(e.clientX - r.left) * sigCanvas.width / r.width, (e.clientY - r.top) * sigCanvas.height / r.height]; };
+sigCanvas.addEventListener("pointerdown", e => {
+  drawing = true; try { sigCanvas.setPointerCapture(e.pointerId); } catch (x) {}
+  const [x, y] = pt(e); sctx.beginPath(); sctx.moveTo(x, y); sctx.lineTo(x + .1, y + .1); sctx.stroke(); sigDrawn = true;
+});
+sigCanvas.addEventListener("pointermove", e => { if (!drawing) return; const [x, y] = pt(e); sctx.lineTo(x, y); sctx.stroke(); });
+["pointerup", "pointercancel"].forEach(t => sigCanvas.addEventListener(t, () => { drawing = false; }));
+function sigClear() { sctx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); sigDrawn = false; }
+document.getElementById("sigClear").onclick = sigClear;
+
+/* ---------- ขั้นตอน ---------- */
+let cur = 0;
+const steps = [...form.querySelectorAll(".step")];
+function show(i) {
+  cur = i;
+  steps.forEach((s, j) => s.classList.toggle("on", j === i));
+  [...document.getElementById("steps").children].forEach((s, j) => { s.className = j === i ? "on" : j < i ? "done" : ""; });
+  updateCounts(); saveDraft();
+  document.getElementById("top").scrollIntoView({ behavior: "smooth" });
+}
+function validStep(i) {
+  for (const el of steps[i].querySelectorAll("input,select,textarea")) {
+    if (!el.checkValidity()) {
+      if (el.type === "radio") { const q = el.closest(".q"); q.scrollIntoView({ behavior: "smooth", block: "center" }); alert("กรุณาตอบข้อ: " + q.querySelector("b").textContent); }
+      else el.reportValidity();
+      return false;
+    }
+  }
+  if (i === 0 && !sigDrawn) { alert("กรุณาเซ็นชื่อในช่องลายเซ็น"); sigCanvas.scrollIntoView({ behavior: "smooth", block: "center" }); return false; }
+  return true;
+}
+function updateCounts() {
+  const n = p => form.querySelectorAll(`input[name^="t_${p}_"]:checked`).length;
+  const set = (p, t) => { const el = form.querySelector(`[data-count="${p}"]`); if (el) el.textContent = `ตอบแล้ว ${n(p)} / ${t} ข้อ`; };
+  set("disc", DISC_Q.length); set("bosi", BOSI_Q.length); set("enn", ENN_Q.length);
+}
+form.addEventListener("click", e => { const g = e.target.dataset.go; if (g === undefined) return; if (+g > cur && !validStep(cur)) return; show(+g); });
+form.addEventListener("input", () => { updateCounts(); saveDraft(); });
+form.addEventListener("submit", e => e.preventDefault());
+// คำนวณอายุจากวันเกิดให้อัตโนมัติ
+form.dob.addEventListener("change", () => { const lp = lifePath(form.dob.value); if (!lp) return;
+  const [y, m, d] = form.dob.value.split("-").map(Number), yy = y > 2400 ? y - 543 : y, t = new Date();
+  form.age.value = t.getFullYear() - yy - ((t.getMonth() + 1 < m || (t.getMonth() + 1 === m && t.getDate() < d)) ? 1 : 0); });
+
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  for (let i = 0; i < steps.length; i++) if (!validStep(i)) { if (i !== cur) { show(i); setTimeout(() => validStep(i), 400); } return; }
+  const a = { id: Date.now().toString(), createdAt: new Date().toISOString(), signImg: sigCanvas.toDataURL("image/png"), ans: {} };
+  const fd = new FormData(form);
+  a.ans.disc = DISC_Q.map((_, i) => fd.get(`t_disc_${i}`)).join("");
+  a.ans.bosi = BOSI_Q.map((_, i) => fd.get(`t_bosi_${i}`)).join("");
+  a.ans.enn = ENN_Q.map((_, i) => fd.get(`t_enn_${i}`)).join("");
+  for (const [k, v] of fd) if (!k.startsWith("t_")) setPath(a, k, String(v).trim());
+  const d = load(); d.push(a);
+  if (!save(d)) return;
+  if (CONFIG.submitUrl) { try { await fetch(CONFIG.submitUrl, { method:"POST", mode:"no-cors", headers:{ "Content-Type":"text/plain" }, body: JSON.stringify(a) }); } catch (e) {} }
+  try { localStorage.removeItem(DRAFT); } catch (e) {}
+  form.reset(); sigClear(); form.hidden = true; document.getElementById("steps").hidden = true;
+  document.getElementById("doneBox").hidden = false; render();
+  document.getElementById("doneBox").scrollIntoView({ behavior: "smooth" });
+});
+document.getElementById("newBtn").onclick = () => { form.hidden = false; document.getElementById("steps").hidden = false; document.getElementById("doneBox").hidden = true; show(0); };
+
+/* =====================================================================
+   หน้าจอ HR
+   ===================================================================== */
+const posIdx = name => POSITIONS.findIndex(p => p.name === name);
+function resultHTML(a) {
+  const r = results(a), ap = [posIdx(a.pos1), posIdx(a.pos2)];
+  const best = r.fit.map((f, i) => [f.total, i]).sort((x, y) => y[0] - x[0])[0][1];
+  return `<div class="sub"><b>ผลแบบทดสอบ</b>
+    <div class="kv"><small>DISC</small>${DISC_K.map((k, i) => `${k} ${pct(r.disc[i])}%`).join(" · ")} → <b>${DISC_INFO[r.discTop][0]}</b></div>
+    <div class="kv"><small>BOSI</small>${BOSI_K.map((k, i) => `${k} ${pct(r.bosi[i])}%`).join(" · ")} → <b>${BOSI_INFO[r.bosiTop][0]}</b></div>
+    <div class="kv"><small>Enneagram</small><b>${ENN_INFO[r.order[0]][0]}</b> (รองลงมา: ไทป์ ${r.order[1] + 1})</div>
+    <div class="tbl-wrap"><table class="fit"><tr><th>ตำแหน่ง</th><th>DISC</th><th>BOSI</th><th>Ennea.</th><th>รวม</th><th>ระดับ</th></tr>
+    ${r.fit.map((f, i) => `<tr class="${ap.includes(i) ? "ap" : ""}"><td>${ap.includes(i) ? "▶ " : ""}${f.p.name}${i === best ? " ★" : ""}</td><td>${f.d}%</td><td>${f.b}%</td><td>${f.e}%</td><td><b>${f.total}%</b></td><td>${fitLevel(f.total)}</td></tr>`).join("")}</table></div>
+    <p class="note">▶ = ตำแหน่งที่สมัคร · ★ = ตำแหน่งที่ผลรวมสูงสุด</p>
+    <div class="kv"><small>ความเข้ากันกับ ${esc(CONFIG.ceoLabel)} (เลขศาสตร์พีทาโกรัส)</small>${r.lp ? `เลขเส้นทางชีวิตผู้สมัคร <b>${r.lp.n}</b> · ${CONFIG.ceoLabel} เลข ${r.ceo.n} → ${r.comp ? `<b>${r.comp.score} คะแนน (${r.comp.level})</b> ${r.comp.why}` : "-"}` : "ไม่มีวันเกิด"}</div></div>`;
+}
+let openId = null;
+function render() {
+  const data = load();
+  document.getElementById("count").textContent = data.length;
+  const list = document.getElementById("list");
+  if (!data.length) { list.innerHTML = '<div class="note">ยังไม่มีผู้สมัคร</div>'; return; }
+  list.innerHTML = data.slice().reverse().map(a => {
+    const f = flat(a), r = results(a), fit1 = r.fit[posIdx(a.pos1)];
+    const rows = Object.keys(f).filter(k => !/^(id|createdAt|hr\.|signImg|ans\.)/.test(k) && f[k] !== "").map(k => `<div class="kv"><small>${esc(L[k] || k)}</small>${esc(f[k])}</div>`).join("");
+    const hr = HR.map(([k, l, o = {}]) => { const v = f[k] ?? "";
+      const c = o.opts ? `<select data-hr="${k}">${["", ...o.opts].map(x => `<option${x === v ? " selected" : ""}>${x}</option>`).join("")}</select>` : `<input data-hr="${k}" type="${o.type || "text"}" value="${esc(v)}">`;
+      return `<label>${l}${c}</label>`; }).join("");
+    return `<div class="item" data-id="${esc(a.id)}"><div class="head"><div><strong>${esc(a.nameTh)}</strong> ${a.nick ? `(${esc(a.nick)})` : ""} ${a.hr?.status ? `<span class="badge">${esc(a.hr.status)}</span>` : ""}
+      <small>${esc(a.pos1)}${fit1 ? ` · เหมาะสม ${fit1.total}%` : ""}${r.comp ? ` · เข้ากับ CEO ${r.comp.score}` : ""}</small><small>${esc(a.phone)} | ${esc(a.email)} | สมัครเมื่อ ${new Date(a.createdAt).toLocaleString("th-TH")}</small></div>
+      <div><button class="ghost sm" data-act="toggle">รายละเอียด</button><button class="ghost sm" data-act="printApp">พิมพ์ใบสมัคร</button><button class="ghost sm" data-act="printRep">พิมพ์ผลประเมิน</button><button class="ghost sm" data-act="printAll">พิมพ์ทั้งหมด</button><button class="del sm" data-act="del">ลบ</button></div></div>
+      <div class="detail${a.id === openId ? " open" : ""}">${resultHTML(a)}<div class="sub"><b>ข้อมูลผู้สมัคร</b>${rows}${/^data:image\/png;base64,/.test(a.signImg || "") ? `<div class="kv"><small>ลายเซ็น</small><img src="${a.signImg}" alt="ลายเซ็น" style="max-width:240px;background:#fff;border-radius:6px"></div>` : ""}</div><div class="sub"><b>สำหรับเจ้าหน้าที่ (HR)</b><div class="grid">${hr}</div><button class="sm" data-act="hr">บันทึกส่วน HR</button></div></div></div>`;
+  }).join("");
+}
+document.getElementById("list").addEventListener("click", e => {
+  const act = e.target.dataset.act; if (!act) return;
+  const box = e.target.closest(".item"), id = box.dataset.id, a = load().find(x => x.id === id);
+  if (act === "printApp") return doPrint(appHTML(a), "ใบสมัครงาน_" + (a.nameTh || ""));
+  if (act === "printRep") return doPrint(reportHTML(a), "ผลประเมิน_" + (a.nameTh || ""));
+  if (act === "printAll") return doPrint(reportHTML(a) + `<div class="pb"></div>` + appHTML(a), "ใบสมัครและผลประเมิน_" + (a.nameTh || ""));
+  if (act === "toggle") { openId = openId === id ? null : id; render(); }
+  if (act === "del") { if (confirm("ลบผู้สมัครคนนี้?")) { save(load().filter(x => x.id !== id)); render(); } }
+  if (act === "hr") { const d = load(), x = d.find(y => y.id === id); box.querySelectorAll("[data-hr]").forEach(i => setPath(x, i.dataset.hr, i.value)); save(d); render(); }
+});
+
+/* =====================================================================
+   หน้าพิมพ์ A4
+   ===================================================================== */
+const iso = /^(\d{4})-(\d\d)-(\d\d)$/;
+const thDate = s => String(s ?? "").replace(iso, (m, y, mo, d) => `${d}/${mo}/${+y + 543}`);
+function doPrint(html, title) {
+  document.getElementById("print").innerHTML = html;
+  const t0 = document.title; document.title = title;
+  window.addEventListener("afterprint", () => { document.title = t0; }, { once: true });
+  try { window.print(); } catch (e) { alert("หน้านี้ไม่รองรับการพิมพ์ ลองเปิดลิงก์ในแท็บใหม่แล้วกดอีกครั้ง"); }
+}
+
+// รายงานผลประเมิน 1 หน้า A4
+function reportHTML(a) {
+  const r = results(a), ap = [posIdx(a.pos1), posIdx(a.pos2)];
+  const best = r.fit.map((f, i) => [f.total, i]).sort((x, y) => y[0] - x[0])[0][1];
+  const bar = (label, v) => `<div class="bar"><span>${label}</span><i><u style="width:${Math.round(v)}%"></u></i><span>${Math.round(v)}%</span></div>`;
+  const ennPct = r.raw.map(v => (v - 4) / 16 * 100);
+  let h = `<div class="rp"><div class="rh"><div><h3>รายงานผลแบบทดสอบบุคลิกภาพและความเหมาะสมกับตำแหน่ง</h3>${esc(CONFIG.company)} · เอกสารลับสำหรับฝ่ายบุคคล</div>
+    <div style="text-align:right">วันที่สมัคร ${new Date(a.createdAt).toLocaleDateString("th-TH")}</div></div>
+    <table class="ft" style="margin:0 0 6px"><tr><td style="width:50%"><b>ผู้สมัคร:</b> ${esc(a.nameTh)} ${a.nick ? `(${esc(a.nick)})` : ""}<br><b>วันเกิด:</b> ${thDate(a.dob) || "-"} · อายุ ${esc(a.age) || "-"} ปี</td>
+    <td style="text-align:left"><b>ตำแหน่งที่สมัคร:</b> 1) ${esc(a.pos1) || "-"}${a.pos2 ? `<br>2) ${esc(a.pos2)}` : ""}<br><b>โทร:</b> ${esc(a.phone)}</td></tr></table>
+    <div class="cols">
+      <div class="bx"><b>DISC</b>${DISC_K.map((k, i) => bar(`${k} ${DISC_INFO[k][0].split(" ")[0]}`, r.disc[i] * 100)).join("")}
+        <div class="tag">สไตล์หลัก: ${DISC_INFO[r.discTop][0]}</div><div class="sm">${DISC_INFO[r.discTop][1]}</div></div>
+      <div class="bx"><b>BOSI</b>${BOSI_K.map((k, i) => bar(BOSI_INFO[k][0].split(" ")[0], r.bosi[i] * 100)).join("")}
+        <div class="tag">สไตล์หลัก: ${BOSI_INFO[r.bosiTop][0]}</div><div class="sm">${BOSI_INFO[r.bosiTop][1]}</div></div>
+      <div class="bx"><b>Enneagram</b>${r.order.slice(0, 4).map(t => bar(ENN_INFO[t][0].split(" (")[0], ennPct[t])).join("")}
+        <div class="tag">${ENN_INFO[r.order[0]][0].split(" (")[0]}</div><div class="sm">${ENN_INFO[r.order[0]][1]} · รองลงมา: ${ENN_INFO[r.order[1]][0].split(" (")[0]}</div></div>
+    </div>
+    <table class="ft"><tr><th>ตำแหน่ง</th><th>ลักษณะงานที่ต้องการ</th><th>DISC</th><th>BOSI</th><th>Enneagram</th><th>รวม</th><th>ระดับ</th></tr>
+    ${r.fit.map((f, i) => `<tr class="${ap.includes(i) ? "ap" : ""}"><td>${ap.includes(i) ? "▶ " : ""}${f.p.name}${i === best ? " ★" : ""}</td><td style="text-align:left;font-size:8pt">${f.p.desc}</td><td>${f.d}%</td><td>${f.b}%</td><td>${f.e}%</td><td><b>${f.total}%</b></td><td>${fitLevel(f.total)}</td></tr>`).join("")}</table>
+    <div class="sm" style="margin-top:2px">▶ = ตำแหน่งที่สมัคร · ★ = ตำแหน่งที่ผลรวมสูงสุด · เกณฑ์: 80%+ เหมาะมาก · 70–79% เหมาะ · 60–69% พอใช้ · ต่ำกว่า 60% ไม่ค่อยเหมาะ · รวม = ค่าเฉลี่ยของ 3 แบบทดสอบ</div>`;
+  h += `<div class="bx" style="margin-top:6px"><b>ความเข้ากันได้กับ ${esc(CONFIG.ceoLabel)} ตามศาสตร์ตัวเลขพีทาโกรัส (เลขเส้นทางชีวิต)</b>
+    <table class="ft" style="margin-top:2px"><tr><th></th><th>วันเกิด</th><th>การคำนวณ</th><th>เลขเส้นทางชีวิต</th><th>ลักษณะ</th></tr>
+    <tr><td>${esc(CONFIG.ceoLabel)}</td><td>${r.ceo.date}</td><td style="font-size:8pt">${r.ceo.steps.join(" → ")}</td><td><b>${r.ceo.n}</b></td><td style="text-align:left;font-size:8pt">${LP_INFO[r.ceo.n]}</td></tr>
+    <tr><td>ผู้สมัคร</td><td>${r.lp ? r.lp.date : "-"}</td><td style="font-size:8pt">${r.lp ? r.lp.steps.join(" → ") : "-"}</td><td><b>${r.lp ? r.lp.n : "-"}</b></td><td style="text-align:left;font-size:8pt">${r.lp ? LP_INFO[r.lp.n] || "" : ""}</td></tr></table>
+    ${r.comp ? `<div class="tag">คะแนนความเข้ากัน: ${r.comp.score} / 100 — ${r.comp.level}</div><div class="sm">${r.comp.why}</div>` : `<div class="sm">ไม่มีข้อมูลวันเกิด</div>`}
+    <div class="sm">เกณฑ์: 85+ เข้ากันมาก · 70–84 เข้ากันดี · 60–69 ต้องปรับเข้าหากัน · ต่ำกว่า 60 ต่างกันมาก</div></div>`;
+  h += `<table style="width:100%;margin-top:14px;text-align:center;font-size:9pt"><tr><td>........................................<br>ผู้ประเมิน / ฝ่ายทรัพยากรบุคคล<br>........../........../..........</td><td>........................................<br>ผู้อนุมัติ<br>........../........../..........</td></tr></table>
+    <div class="disc">หมายเหตุ: แบบทดสอบทั้ง 3 ชุดเป็นแบบประเมินตนเองฉบับย่อที่บริษัทจัดทำขึ้นเพื่อใช้ประกอบการสัมภาษณ์ ไม่ใช่แบบทดสอบมาตรฐานลิขสิทธิ์ และผลเหมาะสมกับตำแหน่งคำนวณจากโปรไฟล์ที่บริษัทกำหนด ควรใช้ร่วมกับการสัมภาษณ์ ผลงาน และการทดสอบทักษะ ส่วนผลเลขศาสตร์ไม่มีหลักฐานทางวิทยาศาสตร์รองรับ ใช้เป็นมุมมองประกอบเท่านั้น ไม่ควรใช้เป็นเกณฑ์ตัดสินการจ้างงาน</div></div>`;
+  return h;
+}
+
+// ใบสมัคร (หน้าตาเหมือนต้นฉบับ)
+function appHTML(a) {
+  const g = k => esc(thDate(k.split(".").reduce((o, x) => o?.[x], a) ?? ""));
+  const v = k => `<span class="v">${g(k) || "&emsp;&emsp;&emsp;"}</span>`;
+  const cb = (k, x) => `${g(k) === x ? "☑" : "☐"} ${x}`;
+  const ps = t => `<div class="ps">${t}</div>`;
+  const pr = s => `<div class="pr">${s}</div>`;
+  const sigImg = /^data:image\/png;base64,/.test(a.signImg || "") ? `<img src="${a.signImg}" style="height:14mm">` : "";
+  let h = `<table class="pt"><tr><td style="width:78%"><b>${esc(CONFIG.company)}</b> สำนักงานใหญ่ อาคารฤทธิ์รัตน ห้องเลขที่ 5502 ชั้นที่ 5 เลขที่ 5 ถ.รามคำแหง แขวงหัวหมาก เขตบางกะปิ กทม 10240
+    <div class="pn">โปรดกรอกข้อมูลส่วนบุคคลลงในแบบฟอร์มนี้ เพื่อใช้ประกอบการพิจารณาการรับท่านเข้าทำงาน กรณีไม่ผ่านการพิจารณา ข้อมูลในใบสมัครจะถูกเก็บรักษาไว้อีก 1 เดือน เพื่อพิจารณาตำแหน่งงานอื่น กรณีผ่านการพิจารณา ข้อมูลจะถูกเก็บรักษาตลอดระยะเวลาการเป็นพนักงาน/ลูกจ้าง และเก็บต่อเนื่องอีก 10 ปี ตามพระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541</div></td>
+    <td class="ph">ติดรูปถ่าย</td></tr></table>`;
+  h += `<table class="pt"><tr><td>ตำแหน่งงานที่สมัคร : 1 ${v("pos1")}<br>Position applied for : 2 ${v("pos2")}<br>เงินเดือนที่คาดหวัง ${v("salaryExp")} บาท</td><td style="width:30%">ชื่อเล่น (Nickname) : ${v("nick")}</td></tr>
+    <tr><td colspan="2">กรุณาแนะนำตัวท่านเอง เพื่อให้องค์กรรู้จักตัวท่านมากขึ้น<div class="box">${g("intro")}</div></td></tr></table>`;
+  h += ps("ประวัติส่วนตัว (Personal Data)") + `<table class="pt"><tr><td>` +
+    pr(`ชื่อ - นามสกุล (ภาษาไทย) ${v("nameTh")}`) + pr(`ชื่อ - นามสกุล (ภาษาอังกฤษ) ${v("nameEn")}`) +
+    pr(`เพศ ${cb("gender", "ชาย")} ${cb("gender", "หญิง")} &nbsp; วันเกิด ${v("dob")} &nbsp; หมายเลขบัตรประชาชน ${v("idNo")} วันที่ออกบัตร ${v("idIssue")} วันหมดอายุ ${v("idExp")}`) +
+    pr(`ส่วนสูง ${v("height")} ซม. น้ำหนัก ${v("weight")} กก. กรุ๊ปเลือด ${v("blood")} อายุ ${v("age")} ปี เชื้อชาติ ${v("ethnic")} สัญชาติ ${v("nation")} ศาสนา ${v("religion")} ภูมิลำเนา ${v("home")}`) +
+    pr(`ที่อยู่ปัจจุบัน ${v("address")}`) + pr(`โทรศัพท์ ${v("phone")} E-mail ${v("email")}`) +
+    pr(`สถานภาพครอบครัว ${["โสด","สมรส","แยกกันอยู่","หม้าย","หย่าร้าง"].map(x => cb("marital", x)).join(" ")}`) +
+    pr(`ชื่อคู่สมรส ${v("sp.name")} อายุ ${v("sp.age")} ปี อาชีพ ${v("sp.job")} ทำงานที่ ${v("sp.work")}`) +
+    pr(`จำนวนบุตร ${v("children")} ภาระที่ต้องอุปการะ ${v("dependents")} คน`) +
+    pr(`สถานะทางการทหาร ${["ศึกษาวิชาทหาร","ผ่านการเกณฑ์ทหาร","ได้รับการยกเว้น","อื่นๆ"].map(x => cb("military", x)).join(" ")} ${v("militaryOther")}`) +
+    pr(`ชื่อบิดาผู้สมัคร ${v("fa.name")} อายุ ${v("fa.age")} ปี อาชีพ ${v("fa.job")} ทำงานที่ ${v("fa.work")}`) +
+    pr(`ชื่อมารดาผู้สมัคร ${v("mo.name")} อายุ ${v("mo.age")} ปี อาชีพ ${v("mo.job")} ทำงานที่ ${v("mo.work")}`) +
+    pr(`จำนวนพี่น้อง (รวมผู้สมัคร) ${v("siblings")} คน ผู้สมัครเป็นคนที่ ${v("order")}`) +
+    pr(`ชื่อบุคคลและช่องทางการติดต่อ: ชื่อ-นามสกุล ${v("ct.name")} ความสัมพันธ์ ${v("ct.rel")} เบอร์โทรศัพท์ ${v("ct.tel")}`) + `</td></tr></table>`;
+  h += ps("ประวัติการศึกษา (Education Record)") + `<table class="pt c"><tr><th rowspan="2">ระดับการศึกษา</th><th rowspan="2">ชื่อสถาบัน</th><th colspan="2">ปีการศึกษา</th><th rowspan="2">วุฒิ</th><th rowspan="2">เกรดเฉลี่ย</th></tr><tr><th>จาก</th><th>ถึง</th></tr>` +
+    edu.map((n, i) => `<tr><td style="text-align:left">${n}</td><td>${g(`edu.${i}.inst`)}</td><td>${g(`edu.${i}.from`)}</td><td>${g(`edu.${i}.to`)}</td><td>${g(`edu.${i}.deg`)}</td><td>${g(`edu.${i}.gpa`)}</td></tr>`).join("") + `</table>`;
+  h += ps("ความสามารถทางด้านภาษา") + `<table class="pt c"><tr><th rowspan="2">ประเภทภาษา</th><th colspan="3">การพูด</th><th colspan="3">การอ่าน</th><th colspan="3">การเขียน</th></tr><tr>${"<th>ดีมาก</th><th>ดี</th><th>พอใช้</th>".repeat(3)}</tr>` +
+    langs.map((n, i) => `<tr><td style="text-align:left">${i === 3 ? "อื่นๆ " + v("lang.3.name") : n}</td>` + ["speak", "read", "write"].map(s => grade.map(x => `<td>${g(`lang.${i}.${s}`) === x ? "✓" : ""}</td>`).join("")).join("") + `</tr>`).join("") + `</table>`;
+  h += ps("ประวัติการทำงาน") + [0, 1, 2].map(i => `<table class="pt"><tr><td>ชื่อสถานที่ทำงาน ${v(`job.${i}.co`)} ประเภทธุรกิจ ${v(`job.${i}.biz`)} ตำแหน่งงาน ${v(`job.${i}.pos`)} ค่าจ้าง/เงินเดือน ${v(`job.${i}.pay`)}<br>ลักษณะงานที่รับผิดชอบ ${v(`job.${i}.duty`)}<br>ระยะเวลาทำงาน จาก ${v(`job.${i}.from`)} ถึง ${v(`job.${i}.to`)}<br>เหตุผลที่ออก ${v(`job.${i}.why`)}</td></tr></table>`).join("");
+  h += ps("ประวัติการฝึกอบรม") + `<table class="pt c"><tr><th>ชื่อหลักสูตร</th><th>ปี พ.ศ.</th><th>ระยะเวลา</th><th>จัดอบรมโดยสถาบัน</th></tr>` +
+    [0, 1, 2].map(i => `<tr><td>${g(`tr.${i}.name`)}&nbsp;</td><td>${g(`tr.${i}.year`)}</td><td>${g(`tr.${i}.dur`)}</td><td>${g(`tr.${i}.by`)}</td></tr>`).join("") + `</table>`;
+  h += `<table class="pt"><tr><td>` + pr(`ความสามารถในการใช้โปรแกรมคอมพิวเตอร์ ${v("computer")}`) + pr(`ผลงาน / Portfolio ${v("portfolio")}`) +
+    pr(`มีร่างกายส่วนใดพิการหรือไม่ ${cb("disab", "ไม่มี")} ${cb("disab", "มี")} (ระบุ) ${v("disabD")} เลขประจำตัวผู้พิการ ${v("disabNo")}`) +
+    pr(`มีโรคประจำตัวหรือไม่ ${cb("illness", "ไม่มี")} ${cb("illness", "มี")} (ระบุ) ${v("illnessD")}`) +
+    pr(`เคยได้รับอุบัติเหตุหรือไม่ ${cb("accident", "ไม่เคย")} ${cb("accident", "เคย")} (ระบุ) ${v("accidentD")}`) +
+    pr(`เคยเป็นสมาชิกหรือกรรมการสหภาพแรงงานหรือไม่ ${cb("union", "ไม่เคย")} ${cb("union", "เคย")} ระบุชื่อบริษัท ${v("unionD")}`) +
+    pr(`เคยถูกฟ้องคดีหรือจำคุกหรือไม่ ${cb("lawsuit", "ไม่เคย")} ${cb("lawsuit", "เคย")} (ระบุ) ${v("lawsuitD")}`) + `</td></tr></table>`;
+  h += `<div class="pb"></div>` + ps("ข้อตกลง") + `<p>ข้อความต่อไปนี้ถือเป็นส่วนหนึ่งของใบสมัครงาน โปรดอ่านให้ละเอียดก่อนลงชื่อ</p>
+    <p>ข้าพเจ้าขอให้คำรับรองว่าข้อความรายละเอียดต่างๆ ที่กรอกไว้ในใบสมัครงานนี้ ถูกต้องตรงตามความเป็นจริงทุกประการ หากข้อความใดเป็นเท็จหรือมีการตรวจพบในภายหลัง บริษัทฯ มีสิทธิพิจารณาเลิกจ้างข้าพเจ้าได้ทันทีโดยไม่ต้องจ่ายค่าชดเชยใดๆ ทั้งสิ้น</p>
+    <p>ข้าพเจ้ายอมรับว่าอัตราค่าจ้างที่บริษัทฯ จะตกลงให้นี้ ได้รวมถึงการทำงานระหว่างเวลาพัก และยินดีรับค่าจ้างผ่านสาขาของธนาคารที่บริษัทฯ เป็นผู้กำหนด</p>
+    <div class="sg">ลงชื่อผู้สมัครงาน <span class="sl">${sigImg}</span><br>( ${g("nameTh")} )<br>วันที่ ${v("signDate")}</div>`;
+  h += ps("สำหรับเจ้าหน้าที่") + `<table class="pt"><tr><td>` +
+    pr(`การพิจารณาว่าจ้าง ${cb("hr.status", "อนุมัติ")} ${cb("hr.status", "ไม่อนุมัติ")}`) +
+    pr(`ตำแหน่ง (Positions) ${v("hr.pos")} แผนก (Department) ${v("hr.dept")}`) +
+    pr(`เงินเดือน (Salary) ${v("hr.salary")} ต่อเดือน (Baht / Month) ค่าใช้จ่ายพิเศษ (Allowances) ${v("hr.allow")}`) +
+    pr(`วันที่เริ่มงาน (Starting date) ${v("hr.start")}`) +
+    `<table style="width:100%;margin-top:28px;text-align:center"><tr><td>........................................<br>ฝ่ายทรัพยากรบุคคล<br>Human resource department<br>........../........../..........</td><td>........................................<br>ผู้อนุมัติ<br>Authorized signature<br>........../........../..........</td></tr></table></td></tr></table>`;
+  h += `<div class="pb"></div>` + ps("คำถามเพิ่มเติมการสมัครงาน") +
+    qs.map((q, i) => `<p><b>${i + 1}. ${esc(q)}</b></p><div class="box" style="border-bottom:1px dotted #000;min-height:32mm">${g(`q${i + 1}`)}</div>`).join("") +
+    `<div class="sg">ลงชื่อผู้สมัครงาน <span class="sl">${sigImg}</span><br>( ${g("nameTh")} )<br>วันที่ ${v("signDate")}</div>`;
+  return h;
+}
+
+/* ---------- CSV / นำเข้า ---------- */
+document.getElementById("exportBtn").addEventListener("click", async () => {
+  const rows = load().map(a => { const r = results(a), o = flat(a); delete o.signImg;
+    DISC_K.forEach((k, i) => o["DISC " + k + " %"] = pct(r.disc[i])); BOSI_K.forEach((k, i) => o["BOSI " + k + " %"] = pct(r.bosi[i]));
+    o["Enneagram ไทป์หลัก"] = r.order[0] + 1; r.fit.forEach(f => o["เหมาะสม: " + f.p.name + " %"] = f.total);
+    o["เลขเส้นทางชีวิต"] = r.lp?.n ?? ""; o["เข้ากับ CEO (คะแนน)"] = r.comp?.score ?? ""; return o; });
+  const cols = []; rows.forEach(r => Object.keys(r).forEach(k => { if (!cols.includes(k)) cols.push(k); }));
+  const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const csv = [cols.map(k => q(L[k] || k)).join(",")].concat(rows.map(r => cols.map(k => q(r[k])).join(","))).join("\n");
+  try { await navigator.clipboard.writeText(csv); alert("คัดลอกแล้ว วางใน Excel/Google Sheets ได้เลย"); }
+  catch (e) { prompt("คัดลอกข้อความนี้:", csv); }
+});
+document.getElementById("importBtn").addEventListener("click", () => {
+  const s = prompt("วางข้อมูล JSON ของผู้สมัคร (1 คน หรือหลายคนเป็น [ ... ]) จากคอลัมน์ json ใน Google Sheets:"); if (!s) return;
+  try { const x = JSON.parse(s), arr = Array.isArray(x) ? x : [x], d = load();
+    arr.forEach(a => { if (a && a.id && !d.some(y => y.id === a.id)) d.push(a); }); save(d); render(); alert("นำเข้าเรียบร้อย"); }
+  catch (e) { alert("รูปแบบข้อมูลไม่ถูกต้อง"); }
+});
+
+/* ---------- เริ่มต้น ---------- */
+function route() { const hr = location.hash === "#hr"; document.getElementById("hrPanel").hidden = !hr; if (hr) { render(); document.getElementById("hrPanel").scrollIntoView(); } }
+window.addEventListener("hashchange", route);
+show(loadDraft()); route();
+</script>
+</body>
+</html>
