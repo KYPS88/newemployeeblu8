@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ใบสมัครงาน - บริษัท อินฟินิตี้ บลู จำกัด</title>
+<title>ใบสมัครงาน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -113,7 +113,7 @@
 <body>
 <main>
   <section id="top">
-    <h1>ใบสมัครงาน บริษัท อินฟินิตี้ บลู จำกัด</h1>
+    <h1 id="title">ใบสมัครงาน</h1>
     <p class="note">โปรดกรอกข้อมูลส่วนบุคคลเพื่อประกอบการพิจารณารับเข้าทำงาน กรณีไม่ผ่านการพิจารณา ข้อมูลจะถูกเก็บไว้ 1 เดือนเพื่อพิจารณาตำแหน่งอื่น กรณีผ่านการพิจารณา ข้อมูลจะถูกเก็บตลอดระยะเวลาการเป็นพนักงานและต่อเนื่องอีก 10 ปี ตามพระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541</p>
     <p class="note">ใช้เวลาประมาณ 25–35 นาที: กรอกใบสมัคร แล้วทำแบบทดสอบลักษณะนิสัย 3 ชุด (DISC, BOSI, Enneagram) ไม่มีคำตอบถูกหรือผิด ตอบตามความเป็นตัวคุณมากที่สุด ระบบบันทึกร่างให้อัตโนมัติ</p>
     <div class="steps" id="steps"></div>
@@ -126,6 +126,7 @@
   </section>
   <section id="hrPanel" hidden>
     <h2>สำหรับเจ้าหน้าที่ HR · รายชื่อผู้สมัคร (<span id="count">0</span>)</h2>
+    <label style="max-width:320px">แสดงผู้สมัครของ<select id="coFilter"></select></label>
     <p class="note">กด "พิมพ์" แล้วเลือก "บันทึกเป็น PDF" หรือสั่งพิมพ์กระดาษ A4 ได้ทันที</p>
     <div id="login" class="grid" hidden><label>รหัสผ่าน HR<input id="hrKey" type="password" autocomplete="current-password"></label><div><button type="button" id="loginBtn">เข้าสู่ระบบ</button></div></div>
     <p class="note" id="modeNote"></p>
@@ -141,8 +142,17 @@
 /* =====================================================================
    ตั้งค่า
    ===================================================================== */
+/* บริษัทที่ใช้หน้านี้ (ใช้ไฟล์และ Google Sheet เดียวกัน)
+   ลิงก์ปกติ = อินฟินิตี้ บลู · ลิงก์ที่มี ?c=goodday (หรือโฟลเดอร์ /goodday/) = กู๊ดเดย์ เอเวอร์ */
+const COMPANIES = {
+  infinity: { name: "บริษัท อินฟินิตี้ บลู จำกัด" },
+  goodday:  { name: "บริษัท กู๊ดเดย์ เอเวอร์ จำกัด" }
+};
+const OFFICE = "สำนักงานใหญ่ อาคารฤทธิ์รัตน ห้องเลขที่ 5502 ชั้นที่ 5 เลขที่ 5 ถ.รามคำแหง แขวงหัวหมาก เขตบางกะปิ กทม 10240";
+const SITE = (() => { let c = ""; try { c = new URLSearchParams(location.search).get("c") || ""; } catch (e) {}
+  return COMPANIES[c] ? c : "infinity"; })();
 const CONFIG = {
-  company: "บริษัท อินฟินิตี้ บลู จำกัด",
+  company: COMPANIES[SITE].name,
   ceoLabel: "CEO",
   ceoDob: "1988-04-22",          // 22 เม.ย. 2531 → เลขเส้นทางชีวิต 7 (ตาราง NUM ด้านล่างใช้เลข 7 เป็นฐาน)
   apiUrl: "https://script.google.com/macros/s/AKfycbx6YZznD0D6iLkQkJGJVkHu-rrjpOCH0YCbdyjMN_CvaswwKko9N8n4IEOdLh7MPzo8/exec"                     // ใช้เฉพาะกรณีโฮสต์หน้านี้เองนอก Apps Script: ใส่ URL /exec ของ Apps Script (ดู README)
@@ -327,7 +337,11 @@ function results(a) {
 /* =====================================================================
    สร้างฟอร์ม (ตามใบสมัครต้นฉบับ) + แบบทดสอบ
    ===================================================================== */
-const KEY = "applicants", DRAFT = "applicantDraft";
+const KEY = "applicants", DRAFT = "applicantDraft" + (SITE === "infinity" ? "" : "_" + SITE);
+document.title = "ใบสมัครงาน - " + CONFIG.company;
+document.getElementById("title").textContent = "ใบสมัครงาน " + CONFIG.company;
+// ชื่อบริษัทของใบสมัครแต่ละใบ (ใบเก่าที่ยังไม่มีช่องนี้ = อินฟินิตี้ บลู)
+const companyOf = a => (a && a.company) || COMPANIES.infinity.name;
 const L = {};   // ชื่อหัวข้อของแต่ละช่อง ใช้ตอนแสดงรายละเอียดและ CSV
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
@@ -437,7 +451,7 @@ const HR = [["hr.status","การพิจารณาว่าจ้าง",{
   ["hr.salary","เงินเดือน (บาท/เดือน)",{type:"number"}], ["hr.allow","ค่าใช้จ่ายพิเศษ (Allowances)"], ["hr.start","วันที่เริ่มงาน",{type:"date"}], ["hr.note","บันทึกการสัมภาษณ์"]];
 HR.forEach(([k, l]) => L[k] = "HR: " + l);
 // หัวคอลัมน์ใน Google Sheets / CSV
-Object.assign(L, { id:"รหัสผู้สมัคร", createdAt:"วันเวลาที่สมัคร", signDate:"วันที่ลงนามใบสมัคร", pos1:"ตำแหน่งที่สมัคร (1)", pos2:"ตำแหน่งที่สมัคร (2)", signImg:"ลายเซ็น (ข้อมูลภาพ)",
+Object.assign(L, { id:"รหัสผู้สมัคร", createdAt:"วันเวลาที่สมัคร", company:"บริษัทที่สมัคร", signDate:"วันที่ลงนามใบสมัคร", pos1:"ตำแหน่งที่สมัคร (1)", pos2:"ตำแหน่งที่สมัคร (2)", signImg:"ลายเซ็น (ข้อมูลภาพ)",
   "res.fit1":"% เหมาะกับตำแหน่งที่สมัคร (1)", "res.fit2":"% เหมาะกับตำแหน่งที่สมัคร (2)", "res.best":"ตำแหน่งที่เหมาะที่สุด",
   "res.ceo":"เข้ากับ CEO (คะแนน)", "res.ceoLevel":"เข้ากับ CEO (ระดับ)", "res.lp":"เลขเส้นทางชีวิต (พีทาโกรัส)",
   "res.discTop":"DISC สไตล์หลัก", "res.bosiTop":"BOSI สไตล์หลัก", "res.ennTop":"Enneagram ไทป์หลัก", "res.ennSecond":"Enneagram ไทป์รอง" });
@@ -571,7 +585,7 @@ form.addEventListener("click", async e => {
     bosi: Object.fromEntries(BOSI_K.map((k, i) => [k, pct(r.bosi[i])])),
     enn: Object.fromEntries(r.raw.map((v, t) => [t + 1, v])) };
   const { id, createdAt, ans, ...fields } = a;
-  const rec = { id, createdAt, res, ...fields, hr: Object.fromEntries(HR.map(([k]) => [k.slice(3), k === "hr.status" ? "รอพิจารณา" : ""])),
+  const rec = { id, createdAt, company: CONFIG.company, res, ...fields, hr: Object.fromEntries(HR.map(([k]) => [k.slice(3), k === "hr.status" ? "รอพิจารณา" : ""])),
     signImg: sigCanvas.toDataURL("image/png") };
   btn.disabled = true; btn.textContent = "กำลังส่ง…";
   try { await api.submit(rec); }
@@ -610,8 +624,12 @@ async function refresh() {
   try { DATA = (await api.list(hrKey)) || []; login.hidden = true; render(); }
   catch (e) { hrKey = ""; try { sessionStorage.removeItem("hrKey"); } catch (x) {} login.hidden = false; list.innerHTML = `<div class="note" style="color:var(--danger)">${esc(errMsg(e))}</div>`; }
 }
+const coFilter = document.getElementById("coFilter");
+coFilter.innerHTML = `<option value="">ทุกบริษัท</option>` + Object.values(COMPANIES).map(c => `<option${c.name === CONFIG.company ? " selected" : ""}>${c.name}</option>`).join("");
+coFilter.onchange = () => render();
+const shown = () => DATA.filter(a => !coFilter.value || companyOf(a) === coFilter.value);
 function render() {
-  const data = DATA;
+  const data = shown();
   document.getElementById("count").textContent = data.length;
   const list = document.getElementById("list");
   if (!data.length) { list.innerHTML = '<div class="note">ยังไม่มีผู้สมัคร</div>'; return; }
@@ -621,7 +639,7 @@ function render() {
     const hr = HR.map(([k, l, o = {}]) => { const v = f[k] ?? "";
       const c = o.opts ? `<select data-hr="${k}">${["", ...o.opts].map(x => `<option${x === v ? " selected" : ""}>${x}</option>`).join("")}</select>` : `<input data-hr="${k}" type="${o.type || "text"}" value="${esc(v)}">`;
       return `<label>${l}${c}</label>`; }).join("");
-    return `<div class="item" data-id="${esc(a.id)}"><div class="head"><div><strong>${esc(a.nameTh)}</strong> ${a.nick ? `(${esc(a.nick)})` : ""} ${a.hr?.status ? `<span class="badge">${esc(a.hr.status)}</span>` : ""}
+    return `<div class="item" data-id="${esc(a.id)}"><div class="head"><div><strong>${esc(a.nameTh)}</strong> ${a.nick ? `(${esc(a.nick)})` : ""} ${coFilter.value ? "" : `<span class="badge">${esc(companyOf(a).replace(/^บริษัท |จำกัด$/g, "").trim())}</span>`} ${a.hr?.status ? `<span class="badge">${esc(a.hr.status)}</span>` : ""}
       <small>${esc(a.pos1)}${fit1 ? ` · เหมาะสม ${fit1.total}%` : ""}${r.comp ? ` · เข้ากับ CEO ${r.comp.score}` : ""}</small><small>${esc(a.phone)} | ${esc(a.email)} | สมัครเมื่อ ${esc(fmtTime(a.createdAt).toLocaleString?.("th-TH") ?? a.createdAt)}</small></div>
       <div><button class="ghost sm" data-act="toggle">รายละเอียด</button><button class="ghost sm" data-act="printApp">พิมพ์ใบสมัคร</button><button class="ghost sm" data-act="printRep">พิมพ์ผลประเมิน</button><button class="ghost sm" data-act="printAll">พิมพ์ทั้งหมด</button><button class="del sm" data-act="del">ลบ</button></div></div>
       <div class="detail${a.id === openId ? " open" : ""}">${resultHTML(a)}<div class="sub"><b>ข้อมูลผู้สมัคร</b>${rows}${/^data:image\/png;base64,/.test(a.signImg || "") ? `<div class="kv"><small>ลายเซ็น</small><img src="${a.signImg}" alt="ลายเซ็น" style="max-width:240px;background:#fff;border-radius:6px"></div>` : ""}</div><div class="sub"><b>สำหรับเจ้าหน้าที่ (HR)</b><div class="grid">${hr}</div><button class="sm" data-act="hr">บันทึกส่วน HR</button></div></div></div>`;
@@ -657,7 +675,7 @@ function reportHTML(a) {
   const best = r.fit.map((f, i) => [f.total, i]).sort((x, y) => y[0] - x[0])[0][1];
   const bar = (label, v) => `<div class="bar"><span>${label}</span><i><u style="width:${Math.round(v)}%"></u></i><span>${Math.round(v)}%</span></div>`;
   const ennPct = r.raw.map(v => (v - 4) / 16 * 100);
-  let h = `<div class="rp"><div class="rh"><div><h3>รายงานผลแบบทดสอบบุคลิกภาพและความเหมาะสมกับตำแหน่ง</h3>${esc(CONFIG.company)} · เอกสารลับสำหรับฝ่ายบุคคล</div>
+  let h = `<div class="rp"><div class="rh"><div><h3>รายงานผลแบบทดสอบบุคลิกภาพและความเหมาะสมกับตำแหน่ง</h3>${esc(companyOf(a))} · เอกสารลับสำหรับฝ่ายบุคคล</div>
     <div style="text-align:right">วันที่สมัคร ${esc(fmtTime(a.createdAt).toLocaleDateString?.("th-TH") ?? a.createdAt)}</div></div>
     <table class="ft" style="margin:0 0 6px"><tr><td style="width:50%"><b>ผู้สมัคร:</b> ${esc(a.nameTh)} ${a.nick ? `(${esc(a.nick)})` : ""}<br><b>วันเกิด:</b> ${thDate(a.dob) || "-"} · อายุ ${esc(a.age) || "-"} ปี</td>
     <td style="text-align:left"><b>ตำแหน่งที่สมัคร:</b> 1) ${esc(a.pos1) || "-"}${a.pos2 ? `<br>2) ${esc(a.pos2)}` : ""}<br><b>โทร:</b> ${esc(a.phone)}</td></tr></table>
@@ -691,7 +709,7 @@ function appHTML(a) {
   const ps = t => `<div class="ps">${t}</div>`;
   const pr = s => `<div class="pr">${s}</div>`;
   const sigImg = /^data:image\/png;base64,/.test(a.signImg || "") ? `<img src="${a.signImg}" style="height:14mm">` : "";
-  let h = `<table class="pt"><tr><td style="width:78%"><b>${esc(CONFIG.company)}</b> สำนักงานใหญ่ อาคารฤทธิ์รัตน ห้องเลขที่ 5502 ชั้นที่ 5 เลขที่ 5 ถ.รามคำแหง แขวงหัวหมาก เขตบางกะปิ กทม 10240
+  let h = `<table class="pt"><tr><td style="width:78%"><b>${esc(companyOf(a))}</b> ${OFFICE}
     <div class="pn">โปรดกรอกข้อมูลส่วนบุคคลลงในแบบฟอร์มนี้ เพื่อใช้ประกอบการพิจารณาการรับท่านเข้าทำงาน กรณีไม่ผ่านการพิจารณา ข้อมูลในใบสมัครจะถูกเก็บรักษาไว้อีก 1 เดือน เพื่อพิจารณาตำแหน่งงานอื่น กรณีผ่านการพิจารณา ข้อมูลจะถูกเก็บรักษาตลอดระยะเวลาการเป็นพนักงาน/ลูกจ้าง และเก็บต่อเนื่องอีก 10 ปี ตามพระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541</div></td>
     <td class="ph">ติดรูปถ่าย</td></tr></table>`;
   h += `<table class="pt"><tr><td>ตำแหน่งงานที่สมัคร : 1 ${v("pos1")}<br>Position applied for : 2 ${v("pos2")}<br>เงินเดือนที่คาดหวัง ${v("salaryExp")} บาท</td><td style="width:30%">ชื่อเล่น (Nickname) : ${v("nick")}</td></tr>
@@ -740,7 +758,7 @@ function appHTML(a) {
 
 /* ---------- CSV / นำเข้า ---------- */
 document.getElementById("exportBtn").addEventListener("click", async () => {
-  const rows = DATA.map(a => { const o = flat(a); delete o.signImg; Object.keys(o).forEach(k => { if (k.startsWith("ans.")) delete o[k]; }); return o; });
+  const rows = shown().map(a => { const o = flat(a); delete o.signImg; Object.keys(o).forEach(k => { if (k.startsWith("ans.")) delete o[k]; }); return o; });
   const cols = []; rows.forEach(r => Object.keys(r).forEach(k => { if (!cols.includes(k)) cols.push(k); }));
   const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
   const csv = [cols.map(k => q(L[k] || k)).join(",")].concat(rows.map(r => cols.map(k => q(r[k])).join(","))).join("\n");
