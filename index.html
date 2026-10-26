@@ -425,7 +425,7 @@ h += sec("คำถามเพิ่มเติมการสมัครง�
 L.agree = "ยอมรับข้อตกลง";
 h += `<section><h2>ข้อตกลง</h2><p class="note">ข้าพเจ้าขอรับรองว่าข้อความรายละเอียดต่างๆ ที่กรอกไว้ในใบสมัครงานนี้ถูกต้องตรงตามความเป็นจริงทุกประการ หากข้อความใดเป็นเท็จหรือตรวจพบในภายหลัง บริษัทฯ มีสิทธิพิจารณาเลิกจ้างข้าพเจ้าได้ทันทีโดยไม่ต้องจ่ายค่าชดเชยใดๆ ทั้งสิ้น และข้าพเจ้ายอมรับว่าอัตราค่าจ้างที่บริษัทฯ ตกลงให้ได้รวมถึงการทำงานระหว่างเวลาพัก และยินดีรับค่าจ้างผ่านสาขาของธนาคารที่บริษัทฯ เป็นผู้กำหนด</p>
   <label><input type="checkbox" name="agree" value="ยอมรับ" required>ข้าพเจ้ารับทราบและยอมรับข้อตกลงข้างต้น *</label>
-  <label>ลงลายมือชื่อผู้สมัครงาน (เซ็นด้วยนิ้วหรือเมาส์ในกรอบ) *</label><canvas id="sig" width="600" height="180"></canvas><div><button type="button" class="ghost sm" id="sigClear" style="margin-top:8px">ล้างลายเซ็น</button></div><div class="grid">${fld("signDate", "วันที่", {type:"date", req:1})}</div></section>`;
+  <label>ลงลายมือชื่อผู้สมัครงาน (ไม่บังคับ · เซ็นด้วยนิ้วหรือเมาส์ในกรอบ)</label><canvas id="sig" width="600" height="180"></canvas><div><button type="button" class="ghost sm" id="sigClear" style="margin-top:8px">ล้างลายเซ็น</button></div><div class="grid">${fld("signDate", "วันที่", {type:"date", req:1})}</div></section>`;
 h += nav(0) + `</div>`;
 
 // แบบทดสอบ DISC — สลับตำแหน่งตัวเลือกในแต่ละข้อ
@@ -524,7 +524,7 @@ function show(i) {
   document.getElementById("top").scrollIntoView({ behavior: "smooth" });
 }
 // ส่วนนี้กรอกครบหรือยัง (ไม่แจ้งเตือน)
-const stepDone = i => [...steps[i].querySelectorAll("input,select,textarea")].every(el => el.checkValidity()) && (i || sigDrawn);
+const stepDone = i => [...steps[i].querySelectorAll("input,select,textarea")].every(el => el.checkValidity());
 function validStep(i) {
   for (const el of steps[i].querySelectorAll("input,select,textarea")) {
     if (!el.checkValidity()) {
@@ -533,7 +533,6 @@ function validStep(i) {
       return false;
     }
   }
-  if (i === 0 && !sigDrawn) { alert("กรุณาเซ็นชื่อในช่องลายเซ็น"); sigCanvas.scrollIntoView({ behavior: "smooth", block: "center" }); return false; }
   return true;
 }
 function updateCounts() {
@@ -586,7 +585,7 @@ form.addEventListener("click", async e => {
     enn: Object.fromEntries(r.raw.map((v, t) => [t + 1, v])) };
   const { id, createdAt, ans, ...fields } = a;
   const rec = { id, createdAt, company: CONFIG.company, res, ...fields, hr: Object.fromEntries(HR.map(([k]) => [k.slice(3), k === "hr.status" ? "รอพิจารณา" : ""])),
-    signImg: sigCanvas.toDataURL("image/png") };
+    signImg: sigDrawn ? sigCanvas.toDataURL("image/png") : "" };
   btn.disabled = true; btn.textContent = "กำลังส่ง…";
   try { await api.submit(rec); }
   catch (e) { alert("ส่งไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วกดส่งอีกครั้ง (ข้อมูลที่กรอกยังอยู่ครบ)\n\n" + errMsg(e)); return; }
