@@ -455,8 +455,14 @@ function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } ca
 function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { throw new Error("บันทึกไม่สำเร็จ (พื้นที่เก็บข้อมูลของเบราว์เซอร์เต็มหรือถูกปิด)"); } }
 function gasCall(fn, ...args) { return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args)); }
 async function urlCall(payload) {
-  const r = await fetch(CONFIG.apiUrl, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-  const j = await r.json(); if (j.error) throw new Error(j.error); return j.result;
+  let j;
+  try {
+    const r = await fetch(CONFIG.apiUrl, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+    j = await r.json();
+  } catch (e) {
+    throw new Error("เชื่อมต่อระบบเก็บข้อมูล (Google Apps Script) ไม่ได้ — ตรวจสอบอินเทอร์เน็ต หรือให้ผู้ดูแลตรวจว่า Deploy แบบ Web app โดยตั้ง Who has access เป็น \"Anyone (ทุกคน)\"");
+  }
+  if (j.error) throw new Error(j.error); return j.result;
 }
 const remote = (fn, payload) => MODE === "gas" ? gasCall(fn, payload) : urlCall({ fn, payload });
 // ทุกคำสั่งรับ/ส่งข้อมูลผ่านตรงนี้ ไม่ว่าจะเก็บที่ Google Sheets หรือในเครื่อง
